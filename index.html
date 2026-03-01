@@ -80,9 +80,9 @@ th { background:#bbb; }
 
     <a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" target="_blank">Click Me I Dare You</a>
     <br>
-    <button onclick="alert('Nothing happened... or did it?')">Button 1</button>
-    <button onclick="alert('Try another button!')">Button 2</button>
-    <button onclick="alert('Keep clicking!')">Button 3</button>
+    <button onclick="buttonClicked()">Button 1</button>
+    <button onclick="buttonClicked()">Button 2</button>
+    <button onclick="buttonClicked()">Button 3</button>
     <br>
     <input type="text" id="secretCode" placeholder="Enter the secret code">
     <button onclick="checkCode()">Submit Code</button>
@@ -132,6 +132,7 @@ var startTime = null;
 var timerInterval = null;
 var inactivityTimer = null;
 var gameStarted = false;
+var lastInteractionTime = null; // to track last interaction time
 
 // ----------------- START GAME -----------------
 function beginGame() {
@@ -152,12 +153,22 @@ function beginGame() {
 // ----------------- TIMER -----------------
 function startTimer() {
     startTime = Date.now();
+    lastInteractionTime = Date.now(); // set first interaction time
+
     timerInterval = setInterval(function(){
         var elapsed = (Date.now() - startTime)/1000;
         document.getElementById("timerDisplay").innerText = "Time: " + elapsed.toFixed(2) + "s";
     },10);
 
-    inactivityTimer = setTimeout(winGame, 30000); // 30 seconds idle win
+    inactivityTimer = setTimeout(winGame, 30000); // 30 seconds of idle win
+}
+
+// ----------------- BUTTON CLICK -----------------
+function buttonClicked() {
+    // Reset idle timer but don't reset stopwatch
+    lastInteractionTime = Date.now();
+    clearTimeout(inactivityTimer);
+    inactivityTimer = setTimeout(winGame, 30000); // reset idle win timer
 }
 
 // ----------------- WIN GAME -----------------
