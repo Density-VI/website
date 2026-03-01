@@ -1,93 +1,73 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Escape Room Online</title>
+<title>Escape Room</title>
 
-<!-- Firebase v8 -->
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
 
 <style>
-/* ================== STYLES ================== */
-
-/* Body and main text */
-body { font-family: Arial; background:#eee; color:black; text-align:center; margin:0; }
-
-/* Rooms */
-.room { padding:40px; }
+body {
+    font-family: Arial, sans-serif;
+    background-color: #111;
+    color: white;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+}
+.room { padding: 40px; }
 .hidden { display:none; }
+input, button { padding:10px; margin:10px; }
 
-/* Buttons, links, inputs all black */
-a, button, input, ::placeholder { 
-    color: black; 
-    text-decoration: none; 
-}
-
-/* Button and input backgrounds */
-button, input { 
-    background: #ddd; 
-    border: 1px solid #999; 
-    padding: 10px; 
-    margin:5px;
-    cursor:pointer;
-}
-
-/* Passed screen overlay */
 #passedScreen {
-    display:none; 
-    position:fixed; 
+    display:none;
+    position: fixed;
     top:0; left:0;
-    width:100%; height:100%; 
-    background:#ccc; 
-    color:black; 
-    font-size:70px; 
-    font-weight:bold; 
-    justify-content:center; 
+    width:100%; height:100%;
+    background-color:black;
+    color:lime;
+    font-size:70px;
+    font-weight:bold;
+    justify-content:center;
     align-items:center;
 }
 
-/* Timer */
-#timerDisplay { 
-    font-size:22px; 
-    color:black; 
+#timerDisplay{
+    font-size:22px;
+    color:cyan;
 }
-
-/* Leaderboard table */
-table { margin:20px auto; border-collapse: collapse; width:60%; }
-th, td { color:black; border:1px solid black; padding:10px; }
-th { background:#bbb; }
 </style>
 </head>
+
 <body>
 
 <!-- START PAGE -->
 <div id="startPage" class="room">
-    <h1>Escape Room Online</h1>
+    <h1>Escape Room Challenge</h1>
     <p>Enter your email to begin:</p>
     <input type="email" id="loginEmail" placeholder="Your Email">
     <br>
     <button onclick="beginGame()">START GAME</button>
-    <br><br>
-    <button onclick="showLeaderboard()">View Leaderboard</button>
 </div>
 
 <div id="timerDisplay" class="hidden">Time: 0.00s</div>
 
 <!-- ROOM 1 -->
 <div id="room1" class="room hidden">
-    <h1>Room 1 - Chaos!</h1>
-    <p>Click around and see what happens...</p>
+    <h1>Escape Room - Room 1</h1>
+    <p>There are many things you can click...</p>
 
-    <a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" target="_blank">Click Me I Dare You</a>
-    <br>
-    <button onclick="buttonClicked()">Button 1</button>
-    <button onclick="buttonClicked()">Button 2</button>
-    <button onclick="buttonClicked()">Button 3</button>
-    <br>
-    <input type="text" id="secretCode" placeholder="Enter the secret code">
-    <button onclick="checkCode()">Submit Code</button>
-    <p>Some buttons are just strange...</p>
-    <button onclick="alert('If the answer is what you seek you must mute and find peace')">Strange Button</button>
+    <a href="https://www.bing.com/videos/riverview/relatedvideo?q=rick+aslty+never" target="_blank">
+        Click Me I Dare You
+    </a>
+
+    <p>Enter the secret code:</p>
+    <input type="text" placeholder="Type something...">
+
+    <p>
+    <button onclick="alert('if the answer is what you seek you must mute and find peace')">
+        Strange Button
+    </button>
+    </p>
 </div>
 
 <div id="passedScreen">YOU PASSED</div>
@@ -96,159 +76,93 @@ th { background:#bbb; }
 <div id="finishPage" class="room hidden">
     <h1>YOU ESCAPED</h1>
     <h2 id="finalTime"></h2>
-    <button onclick="saveScore()">Save Score</button>
-</div>
-
-<!-- LEADERBOARD PAGE -->
-<div id="leaderboardPage" class="room hidden">
-    <h1>🏆 Global Leaderboard</h1>
-    <table id="leaderboardTable">
-        <tr>
-            <th>Rank</th>
-            <th>Email</th>
-            <th>Time (s)</th>
-        </tr>
-    </table>
-    <br>
-    <button onclick="goHome()">Back</button>
+    <button onclick="submitScore()">Submit Score</button>
+    <p id="submitStatus"></p>
 </div>
 
 <script>
-// ----------------- FIREBASE -----------------
-var firebaseConfig = {
-  apiKey: "PASTE_YOUR_KEY_HERE",
-  authDomain: "PASTE_YOUR_AUTH_DOMAIN",
-  projectId: "PASTE_YOUR_PROJECT_ID",
-  storageBucket: "PASTE_YOUR_BUCKET",
-  messagingSenderId: "PASTE_YOUR_MESSAGING_ID",
-  appId: "PASTE_YOUR_APP_ID"
-};
-firebase.initializeApp(firebaseConfig);
-var db = firebase.firestore();
+emailjs.init("YOUR_PUBLIC_KEY"); // replace this
 
-// ----------------- GAME STATE -----------------
-var playerEmail = "";
-var startTime = null;
-var timerInterval = null;
-var inactivityTimer = null;
-var gameStarted = false;
-var lastInteractionTime = null; // to track last interaction time
+let playerEmail="";
+let startTime;
+let timerInterval;
+let inactivityTimer;
 
-// ----------------- START GAME -----------------
-function beginGame() {
-    var emailInput = document.getElementById("loginEmail").value.trim();
-    if (!emailInput) { alert("Enter email first"); return; }
-    if (gameStarted) return;
+/* ---------- START ---------- */
 
-    gameStarted = true;
-    playerEmail = emailInput;
+function beginGame(){
+    const emailInput=document.getElementById("loginEmail").value;
+    if(!emailInput){
+        alert("Enter your email first.");
+        return;
+    }
+
+    playerEmail=emailInput;
 
     document.getElementById("startPage").classList.add("hidden");
     document.getElementById("room1").classList.remove("hidden");
     document.getElementById("timerDisplay").classList.remove("hidden");
 
-    startTimer();
+    startTime=Date.now();
+    timerInterval=setInterval(updateTimer,10);
+
+    resetIdleTimer();
 }
 
-// ----------------- TIMER -----------------
-function startTimer() {
-    startTime = Date.now();
-    lastInteractionTime = Date.now(); // set first interaction time
+/* ---------- TIMER ---------- */
 
-    timerInterval = setInterval(function(){
-        var elapsed = (Date.now() - startTime)/1000;
-        document.getElementById("timerDisplay").innerText = "Time: " + elapsed.toFixed(2) + "s";
-    },10);
-
-    inactivityTimer = setTimeout(winGame, 30000); // 30 seconds of idle win
+function updateTimer(){
+    let elapsed=(Date.now()-startTime)/1000;
+    document.getElementById("timerDisplay").innerText=
+        "Time: "+elapsed.toFixed(2)+"s";
 }
 
-// ----------------- BUTTON CLICK -----------------
-function buttonClicked() {
-    // Reset idle timer but don't reset stopwatch
-    lastInteractionTime = Date.now();
-    clearTimeout(inactivityTimer);
-    inactivityTimer = setTimeout(winGame, 30000); // reset idle win timer
-}
-
-// ----------------- WIN GAME -----------------
-function stopTimer() {
+function stopTimer(){
     clearInterval(timerInterval);
-    clearTimeout(inactivityTimer);
+    return ((Date.now()-startTime)/1000).toFixed(2);
 }
 
-function winGame() {
-    stopTimer();
-    document.getElementById("passedScreen").style.display = "flex";
+/* ---------- ROOM 1 IDLE WIN ---------- */
 
-    setTimeout(function(){
-        document.getElementById("passedScreen").style.display = "none";
+function resetIdleTimer(){
+    clearTimeout(inactivityTimer);
+    inactivityTimer=setTimeout(winGame,30000);
+}
+
+document.addEventListener("mousemove",resetIdleTimer);
+document.addEventListener("keypress",resetIdleTimer);
+document.addEventListener("click",resetIdleTimer);
+
+function winGame(){
+    document.getElementById("passedScreen").style.display="flex";
+
+    setTimeout(()=>{
+        document.getElementById("passedScreen").style.display="none";
         document.getElementById("room1").classList.add("hidden");
         document.getElementById("finishPage").classList.remove("hidden");
 
-        var finalTime = ((Date.now() - startTime)/1000).toFixed(2);
-        window.playerScore = parseFloat(finalTime);
-        document.getElementById("finalTime").innerText = "Your Time: " + finalTime + " seconds";
+        let finalTime=stopTimer();
+        window.playerScore=finalTime;
+
+        document.getElementById("finalTime").innerText=
+            "Your Time: "+finalTime+" seconds";
     },3000);
 }
 
-// ----------------- SECRET CODE -----------------
-function checkCode(){
-    var code = document.getElementById("secretCode").value.trim().toLowerCase();
-    if(code === "open-sesame"){
-        alert("You found the secret code! You win early!");
-        winGame();
-    } else {
-        alert("Wrong code. Keep looking...");
-    }
-}
+/* ---------- EMAIL SUBMIT ---------- */
 
-// ----------------- SAVE SCORE -----------------
-function saveScore() {
-    db.collection("scores").add({
-        email: playerEmail,
-        time: window.playerScore,
-        created: Date.now()
-    }).then(function(){
-        showLeaderboard();
-    }).catch(function(error){
-        alert("Error saving score: "+error);
+function submitScore(){
+    emailjs.send("YOUR_SERVICE_ID","YOUR_TEMPLATE_ID",{
+        to_email:"YOUR_EMAIL@gmail.com", // put your email here
+        player_email:playerEmail,
+        score:window.playerScore
+    }).then(()=>{
+        document.getElementById("submitStatus").innerText=
+            "Score Submitted Successfully!";
+    },()=>{
+        document.getElementById("submitStatus").innerText=
+            "Error sending score.";
     });
-}
-
-// ----------------- SHOW LEADERBOARD -----------------
-function showLeaderboard() {
-    document.querySelectorAll(".room").forEach(r=>r.classList.add("hidden"));
-    document.getElementById("leaderboardPage").classList.remove("hidden");
-
-    var table = document.getElementById("leaderboardTable");
-    table.innerHTML = `
-        <tr>
-            <th>Rank</th>
-            <th>Email</th>
-            <th>Time (s)</th>
-        </tr>
-    `;
-
-    db.collection("scores").orderBy("time").limit(10).get()
-    .then(function(snapshot){
-        var rank = 1;
-        snapshot.forEach(function(doc){
-            var data = doc.data();
-            table.innerHTML += `
-                <tr>
-                    <td>${rank++}</td>
-                    <td>${data.email}</td>
-                    <td>${data.time.toFixed(2)}</td>
-                </tr>
-            `;
-        });
-    });
-}
-
-// ----------------- BACK HOME -----------------
-function goHome() {
-    location.reload(); // reset everything
 }
 </script>
 
