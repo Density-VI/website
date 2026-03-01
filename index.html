@@ -1,200 +1,202 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Escape Room</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #111;
-            color: white;
-            text-align: center;
-            margin: 0;
-            padding: 0;
-        }
-        .room { padding: 40px; }
-        a { color: cyan; cursor: pointer; }
-        input { padding: 8px; margin: 10px; }
-        #passedScreen {
-            display: none;
-            position: fixed;
-            top:0; left:0;
-            width:100%; height:100%;
-            background-color:black;
-            color:lime;
-            font-size:80px;
-            font-weight:bold;
-            justify-content:center;
-            align-items:center;
-        }
-        .hidden { display:none; }
+<title>Escape Room Challenge</title>
 
-        #gameContainer {
-            position: relative;
-            width: 800px;
-            height: 400px;
-            margin: 20px auto;
-            background-color: #222;
-            border: 3px solid #fff;
-            overflow: hidden;
-        }
-        #player { position:absolute; width:40px; height:40px; background-color:red; }
-        .platform { position:absolute; height:20px; background-color:#888; }
-        #greenTrap { position:absolute; width:50px; height:50px; background-color:green; }
-    </style>
+<script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+
+<style>
+body{
+    margin:0;
+    font-family:Arial;
+    background:#111;
+    color:white;
+    text-align:center;
+}
+.room{ padding:40px; }
+.hidden{ display:none; }
+button{ padding:10px 20px; margin:10px; }
+input{ padding:10px; margin:10px; }
+
+#gameContainer{
+    position:relative;
+    width:800px;
+    height:400px;
+    margin:20px auto;
+    background:#222;
+    border:3px solid white;
+    overflow:hidden;
+}
+#player{
+    position:absolute;
+    width:40px;
+    height:40px;
+    background:red;
+}
+.platform{
+    position:absolute;
+    height:20px;
+    background:#888;
+}
+#greenTrap{
+    position:absolute;
+    width:50px;
+    height:50px;
+    background:green;
+}
+#timerDisplay{
+    font-size:24px;
+    color:lime;
+}
+</style>
 </head>
+
 <body>
 
-<div id="room1" class="room">
-    <h1>Escape Room - Room 1</h1>
-    <p>There are many things you can click...</p>
- <a href="https://www.bing.com/videos/riverview/relatedvideo?q=rick+aslty+never&&mid=4E7B1C0F8E67E9F7B1364E7B1C0F8E67E9F7B136&churl=https%3a%2f%2fwww.youtube.com%2fchannel%2fUCuAXFkgsw1L7xaCfnd5JJOw&FORM=VAMGZC">Click Me I Dare You</a>
-    <p>Enter the secret code:</p>
-    <input type="text" placeholder="Type something...">
-    <p><button onclick="alert('Nothing happens... or does it?')">Strange Button</button></p>
+<!-- START PAGE -->
+<div id="startPage" class="room">
+    <h1>Ultimate Escape Room</h1>
+    <p>Can you beat it?</p>
+    <button onclick="startGame()">START</button>
 </div>
 
-<div id="passedScreen">YOU PASSED</div>
+<!-- TIMER DISPLAY -->
+<div id="timerDisplay" class="hidden">Time: 0.00s</div>
 
+<!-- ROOM 1 -->
+<div id="room1" class="room hidden">
+    <h1>Room 1</h1>
+    <p>Wait patiently...</p>
+</div>
+
+<!-- ROOM 2 -->
 <div id="room2" class="room hidden">
-    <h1>Escape Room - Room 2: Platformer</h1>
-    <p>Fall 5 times to continue! Avoid the green trap block!</p>
-    <p>Deaths: <span id="deathCount">0</span>/5</p>
+    <h1>Room 2 - Platformer</h1>
     <div id="gameContainer">
         <div id="player"></div>
-
-        <!-- Platforms for a fun path -->
         <div class="platform" style="top:350px; left:0px; width:200px;"></div>
-        <div class="platform" style="top:300px; left:220px; width:150px;"></div>
-        <div class="platform" style="top:250px; left:400px; width:150px;"></div>
-        <div class="platform" style="top:200px; left:600px; width:150px;"></div>
-        <div class="platform" style="top:150px; left:200px; width:150px;"></div>
-        <div class="platform" style="top:100px; left:400px; width:150px;"></div>
-        <div class="platform" style="top:50px; left:600px; width:150px;"></div>
-
-        <!-- Green trap -->
-        <div id="greenTrap" style="top:10px; left:750px;"></div>
+        <div class="platform" style="top:300px; left:250px; width:200px;"></div>
+        <div class="platform" style="top:250px; left:500px; width:200px;"></div>
+        <div id="greenTrap" style="top:200px; left:750px;"></div>
     </div>
 </div>
 
+<!-- FINISH PAGE -->
+<div id="finishPage" class="room hidden">
+    <h1>YOU ESCAPED</h1>
+    <h2 id="finalTime"></h2>
+    <p>Enter your email to submit your score:</p>
+    <input type="email" id="playerEmail" placeholder="Your Email">
+    <button onclick="sendScore()">Submit Score</button>
+    <p id="submitStatus"></p>
+</div>
+
 <script>
-let timeout;
+emailjs.init("YOUR_PUBLIC_KEY"); // replace this
 
-function resetTimer() {
-    clearTimeout(timeout);
-    timeout = setTimeout(goToRoom2, 30000);
-}
+let startTime;
+let timerInterval;
 
-function goToRoom2() {
-    document.getElementById("passedScreen").style.display="flex";
+function startGame(){
+    document.getElementById("startPage").classList.add("hidden");
+    document.getElementById("room1").classList.remove("hidden");
+    document.getElementById("timerDisplay").classList.remove("hidden");
+
+    startTime = Date.now();
+    timerInterval = setInterval(updateTimer,10);
+
     setTimeout(()=>{
-        document.getElementById("passedScreen").style.display="none";
         document.getElementById("room1").classList.add("hidden");
         document.getElementById("room2").classList.remove("hidden");
         startPlatformer();
-    },3000);
+    },5000);
 }
 
-document.addEventListener("mousemove", resetTimer);
-document.addEventListener("keypress", resetTimer);
-document.addEventListener("click", resetTimer);
-resetTimer();
+function updateTimer(){
+    let elapsed = (Date.now() - startTime)/1000;
+    document.getElementById("timerDisplay").innerText = "Time: " + elapsed.toFixed(2) + "s";
+}
+
+function stopTimer(){
+    clearInterval(timerInterval);
+    return ((Date.now()-startTime)/1000).toFixed(2);
+}
 
 function startPlatformer(){
     const player = document.getElementById("player");
-    const platforms = document.querySelectorAll(".platform");
-    const greenTrap = document.getElementById("greenTrap");
-    const deathDisplay = document.getElementById("deathCount");
+    const trap = document.getElementById("greenTrap");
 
-    let left = 0;
-    let bottom = 350; // start on first visible platform
-    let velocityY = 0;
-    const gravity = -0.5;
-    const moveSpeed = 5;
-    let keys = {};
-    let deaths = 0;
-    const maxDeaths = 5;
-    let room3Loaded=false;
-    let greenTrapActive=true;
+    let left=0;
+    let bottom=350;
+    let velocityY=0;
+    const gravity=-0.5;
+    const moveSpeed=5;
+    let keys={};
 
-    player.style.left = left + "px";
-    player.style.bottom = bottom + "px";
+    player.style.left=left+"px";
+    player.style.bottom=bottom+"px";
 
-    document.addEventListener("keydown", e=>keys[e.key]=true);
-    document.addEventListener("keyup", e=>keys[e.key]=false);
+    document.addEventListener("keydown",e=>keys[e.key]=true);
+    document.addEventListener("keyup",e=>keys[e.key]=false);
 
-    function resetPlayer(){
-        if(room3Loaded) return;
-        left=0; bottom=350; velocityY=0;
-        deaths++; deathDisplay.textContent=deaths;
-        if(deaths>=maxDeaths && !room3Loaded){
-            room3Loaded=true;
-            loadRoom3();
-        }
-    }
-
-    function backToRoom1(){
-        if(!greenTrapActive) return;
-        greenTrapActive=false;
-        document.getElementById("room2").classList.add("hidden");
-        document.getElementById("room1").classList.remove("hidden");
-        resetTimer();
-    }
-
-    function rectsOverlap(r1,r2){
-        return !(r2.left>r1.right || r2.right<r1.left || r2.top>r1.bottom || r2.bottom<r1.top);
-    }
-
-    function gameLoop(){
-        if(room3Loaded) return;
-
+    function loop(){
         if(keys["ArrowLeft"]) left-=moveSpeed;
         if(keys["ArrowRight"]) left+=moveSpeed;
 
         velocityY+=gravity;
         bottom+=velocityY;
 
-        if(bottom<-50) resetPlayer();
-
-        // platform collision
-        platforms.forEach(p=>{
-            const pTop=p.offsetTop;
-            const pLeft=p.offsetLeft;
-            const pRight=pLeft+p.offsetWidth;
-            const pHeight=p.offsetHeight;
-
-            if(left+40>pLeft && left<pRight &&
-               bottom<=pTop+pHeight && bottom+40>=pTop &&
-               velocityY<=0){
-                bottom = pTop + pHeight; // land on top of platform
-                velocityY=0;
-            }
-        });
+        if(bottom<0) bottom=0;
 
         if(keys["ArrowUp"] && velocityY===0) velocityY=10;
 
-        player.style.left = left + "px";
-        player.style.bottom = bottom + "px";
+        player.style.left=left+"px";
+        player.style.bottom=bottom+"px";
 
-        if(rectsOverlap(player.getBoundingClientRect(), greenTrap.getBoundingClientRect())){
-            backToRoom1();
+        if(player.getBoundingClientRect().right >
+           trap.getBoundingClientRect().left){
+            finishGame();
+            return;
         }
 
-        requestAnimationFrame(gameLoop);
+        requestAnimationFrame(loop);
+    }
+    loop();
+}
+
+function finishGame(){
+    document.getElementById("room2").classList.add("hidden");
+    document.getElementById("finishPage").classList.remove("hidden");
+
+    let finalTime = stopTimer();
+    document.getElementById("finalTime").innerText =
+        "Your Time: " + finalTime + " seconds";
+
+    window.playerScore = finalTime;
+}
+
+function sendScore(){
+    let email = document.getElementById("playerEmail").value;
+    if(!email){
+        alert("Enter email first");
+        return;
     }
 
-    gameLoop();
-
-    function loadRoom3(){
-        greenTrapActive=false;
-        document.getElementById("room2").classList.add("hidden");
-        const room3=document.createElement("div");
-        room3.id="room3";
-        room3.className="room";
-        room3.innerHTML="<h1>Room 3</h1><p>Congrats! You escaped Room 2.</p>";
-        document.body.appendChild(room3);
-    }
+    emailjs.send("YOUR_SERVICE_ID","YOUR_TEMPLATE_ID",{
+        to_email: "YOUR_EMAIL@gmail.com",
+        player_email: email,
+        score: window.playerScore
+    }).then(()=>{
+        document.getElementById("submitStatus").innerText =
+            "Score Submitted Successfully!";
+    },()=>{
+        document.getElementById("submitStatus").innerText =
+            "Error sending score.";
+    });
 }
 </script>
+
 </body>
 </html>
+
 
