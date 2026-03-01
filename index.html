@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<h2>Submit Your Answer</h2>
+
+<form id="answerForm" action="https://formsubmit.co/ah877s@spiritsd.ca" method="POST">
+    <input type="text" name="answer" id="answer" required>
+
+    <!-- Redirect back to this page -->
+    <input type="hidden" name="_next" value="Density-vi.github.io">
+
+    <!-- Disable captcha -->
+    <input type="hidden" name="_captcha" value="false">
+
+    <button type="submit" id="submitBtn">Send</button>
+</form>
+
+<p id="message"></p>
+
+<script>
+window.onload = function() {
+    if (localStorage.getItem("submitted") === "true") {
+        disableForm();
+    }
+};
+
+document.getElementById("answerForm").addEventListener("submit", function() {
+    localStorage.setItem("submitted", "true");
+});
+
+function disableForm() {
+    document.getElementById("answer").style.display = "none";
+    document.getElementById("submitBtn").style.display = "none";
+    document.getElementById("message").innerHTML = "You have already submitted.";
+}
+</script>
+
+</body>
+</html>
