@@ -112,97 +112,135 @@ th {
 </div>
 
 <script>
-emailjs.init("YOUR_PUBLIC_KEY"); // replace this with your public EmailJS key
-
-let playerEmail="";
+// Global variables
+let playerEmail = "";
 let startTime;
 let timerInterval;
 let inactivityTimer;
 
-function beginGame(){
-    const emailInput=document.getElementById("loginEmail").value;
-    if(!emailInput){
+// Leaderboard storage in localStorage
+const LEADERBOARD_KEY = "escapeRoomLeaderboard";
+
+// Helper function to get leaderboard from localStorage
+function getLeaderboard() {
+    const leaderboard = localStorage.getItem(LEADERBOARD_KEY);
+    return leaderboard ? JSON.parse(leaderboard) : [];
+}
+
+// Helper function to save leaderboard to localStorage
+function saveLeaderboard(leaderboard) {
+    localStorage.setItem(LEADERBOARD_KEY, JSON.stringify(leaderboard));
+}
+
+// Start the game
+function beginGame() {
+    const emailInput = document.getElementById("loginEmail").value;
+    if (!emailInput) {
         alert("Enter your email first.");
         return;
     }
 
-    playerEmail=emailInput;
+    playerEmail = emailInput;
 
     document.getElementById("startPage").classList.add("hidden");
     document.getElementById("room1").classList.remove("hidden");
     document.getElementById("timerDisplay").classList.remove("hidden");
 
-    startTime=Date.now();
-    timerInterval=setInterval(updateTimer,10);
+    startTime = Date.now();
+    timerInterval = setInterval(updateTimer, 10);
 
     resetIdleTimer();
 }
 
-function updateTimer(){
-    let elapsed=(Date.now()-startTime)/1000;
-    document.getElementById("timerDisplay").innerText="Time: "+elapsed.toFixed(2)+"s";
+// Update timer display
+function updateTimer() {
+    let elapsed = (Date.now() - startTime) / 1000;
+    document.getElementById("timerDisplay").innerText = "Time: " + elapsed.toFixed(2) + "s";
 }
 
-function stopTimer(){
+// Stop the timer and return final time
+function stopTimer() {
     clearInterval(timerInterval);
-    return ((Date.now()-startTime)/1000).toFixed(2);
+    return ((Date.now() - startTime) / 1000).toFixed(2);
 }
 
-function resetIdleTimer(){
+// Reset idle timer (30 seconds of inactivity)
+function resetIdleTimer() {
     clearTimeout(inactivityTimer);
-    inactivityTimer=setTimeout(winGame,30000);
+    inactivityTimer = setTimeout(winGame, 30000);
 }
 
-document.addEventListener("mousemove",resetIdleTimer);
-document.addEventListener("keypress",resetIdleTimer);
-document.addEventListener("click",resetIdleTimer);
+document.addEventListener("mousemove", resetIdleTimer);
+document.addEventListener("keypress", resetIdleTimer);
+document.addEventListener("click", resetIdleTimer);
 
-function winGame(){
-    document.getElementById("passedScreen").style.display="flex";
-    setTimeout(()=>{
-        document.getElementById("passedScreen").style.display="none";
+// Win game (after 30 seconds of inactivity or completing the game)
+function winGame() {
+    document.getElementById("passedScreen").style.display = "flex";
+    setTimeout(() => {
+        document.getElementById("passedScreen").style.display = "none";
         document.getElementById("room1").classList.add("hidden");
         document.getElementById("finishPage").classList.remove("hidden");
 
-        let finalTime=stopTimer();
-        window.playerScore=finalTime;
-        document.getElementById("finalTime").innerText="Your Time: "+finalTime+" seconds";
-    },3000);
+        let finalTime = stopTimer();
+        window.playerScore = finalTime;
+        document.getElementById("finalTime").innerText = "Your Time: " + finalTime + " seconds";
+    }, 3000);
 }
 
-function submitScore(){
-    // Submit to Google Sheets
-    fetch('YOUR_GOOGLE_SCRIPT_URL', {
-        method: 'POST',
-        body: new URLSearchParams({
-            'email': playerEmail,
-            'score': window.playerScore
-        })
-    }).then(response => {
-        document.getElementById("submitStatus").innerText="Score Submitted Successfully!";
-    }).catch(() => {
-        document.getElementById("submitStatus").innerText="Error submitting score.";
+// Submit score to the leaderboard
+function submitScore() {
+    let leaderboard = getLeaderboard();
+
+    // Add player's score to the leaderboard
+    leaderboard.push({
+        email: playerEmail,
+        score: window.playerScore
+    });
+
+    // Sort leaderboard by score (ascending order)
+    leaderboard.sort((a, b) => parseFloat(a.score) - parseFloat(b.score));
+
+    // Limit to top 10 scores
+    if (leaderboard.length > 10) {
+        leaderboard = leaderboard.slice(0, 10);
+    }
+
+    // Save leaderboard back to localStorage
+    saveLeaderboard(leaderboard);
+
+    // Show success message
+    document.getElementById("submitStatus").innerText = "Score Submitted Successfully!";
+}
+
+// Show the leaderboard
+function showLeaderboard() {
+    document.querySelectorAll(".room").forEach(r => r.classList.add("hidden"));
+    document.getElementById("leaderboardPage").classList.remove("hidden");
+
+    // Get leaderboard and display it
+    const leaderboard = getLeaderboard();
+    const table = document.getElementById("leaderboardTable");
+
+    // Clear existing leaderboard
+    table.innerHTML = `
+        <tr>
+            <th>Rank</th>
+            <th>Email</th>
+            <th>Score</th>
+        </tr>
+    `;
+
+    // Populate leaderboard table
+    leaderboard.forEach((entry, index) => {
+        let row = table.insertRow();
+        row.insertCell(0).textContent = index + 1;
+        row.insertCell(1).textContent = entry.email;
+        row.insertCell(2).textContent = entry.score;
     });
 }
 
-function showLeaderboard(){
-    document.querySelectorAll(".room").forEach(r=>r.classList.add("hidden"));
-    document.getElementById("leaderboardPage").classList.remove("hidden");
-
-    // Fetch leaderboard data from Google Sheets
-    fetch('YOUR_GOOGLE_SCRIPT_URL') // Replace with your Google Apps Script URL
-        .then(response => response.json())
-        .then(data => {
-            let table = document.getElementById("leaderboardTable");
-            data.forEach((entry, index) => {
-                let row = table.insertRow();
-                row.insertCell(0).textContent = index + 1;
-                row.insertCell(1).textContent = entry.email;
-                row.insertCell(2).textContent = entry.score;
-            });
-        });
-}
-
+// Go back to home (reload the game)
 function goHome() {
     location.reload();
 }
