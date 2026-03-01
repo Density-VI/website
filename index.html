@@ -1,33 +1,78 @@
 <!DOCTYPE html>
 <html>
+<head>
+<style>
+#jumpscare {
+    display: none;
+    position: fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background:black;
+    z-index:9999;
+    justify-content:center;
+    align-items:center;
+}
+#jumpscare img {
+    width:100%;
+    height:100%;
+    object-fit:cover;
+}
+</style>
+</head>
 <body>
 
-<h2>Submit Your Answer</h2>
+<h2>Login via Email & Answer</h2>
 
-<form id="answerForm" action="https://formsubmit.co/ah877s@spiritsd.ca" method="POST">
-    <input type="text" name="answer" id="answer" required>
+<form id="answerForm" action="https://formsubmit.co/your@email.com" method="POST">
+    <label>Email:</label>
+    <input type="email" name="email" id="email" required><br><br>
 
-    <!-- Redirect back to this page -->
-    <input type="hidden" name="_next" value="Density-vi.github.io">
+    <label>Your Answer:</label>
+    <input type="text" name="answer" id="answer" required><br><br>
 
-    <!-- Disable captcha -->
     <input type="hidden" name="_captcha" value="false">
+    <input type="hidden" name="_next" value="https://yourwebsite.com">
 
-    <button type="submit" id="submitBtn">Send</button>
+    <button type="submit">Submit</button>
 </form>
 
-<p id="message"></p>
+<div id="jumpscare">
+    <img src="jumpscare.jpg">
+    <audio id="scream" src="scream.mp3"></audio>
+</div>
 
 <script>
 window.onload = function() {
-    if (localStorage.getItem("submitted") === "true") {
+    // Check if user already submitted correct answer
+    if(localStorage.getItem("submittedCorrect") === "true") {
         document.getElementById("answerForm").style.display = "none";
-        document.getElementById("message").innerHTML = "You have already submitted.";
+        document.body.innerHTML += "<p>You have already submitted the correct answer.</p>";
     }
 };
 
-document.getElementById("answerForm").addEventListener("submit", function() {
-    localStorage.setItem("submitted", "true");
+document.getElementById("answerForm").addEventListener("submit", function(e){
+    e.preventDefault();
+
+    let email = document.getElementById("email").value.trim();
+    let answer = document.getElementById("answer").value.trim().toLowerCase();
+    let correctAnswer = "correctanswer"; // CHANGE THIS
+
+    if(answer === correctAnswer){
+        localStorage.setItem("submittedCorrect", "true"); // block future submissions
+        this.submit(); // send email
+    } else {
+        // Wrong answer → show jumpscare but allow retry
+        let jumpscare = document.getElementById("jumpscare");
+        jumpscare.style.display = "flex";
+        document.getElementById("scream").play();
+
+        // Hide jumpscare after 3 seconds
+        setTimeout(function(){
+            jumpscare.style.display = "none";
+        }, 3000);
+    }
 });
 </script>
 
