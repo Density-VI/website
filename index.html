@@ -1,25 +1,23 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Escape Room Ultimate</title>
-
-<script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+<title>Escape Room</title>
 
 <style>
 body {
-    font-family: Arial;
-    background:#111;
-    color:white;
-    text-align:center;
-    margin:0;
+    font-family: Arial, sans-serif;
+    background-color: #111;
+    color: white;
+    text-align: center;
+    margin: 0;
 }
-.room { padding:40px; }
+.room { padding: 40px; }
 .hidden { display:none; }
-input,button { padding:10px; margin:10px; }
+input, button { padding:10px; margin:10px; }
 
 #passedScreen {
     display:none;
-    position:fixed;
+    position: fixed;
     top:0; left:0;
     width:100%; height:100%;
     background:black;
@@ -35,34 +33,37 @@ input,button { padding:10px; margin:10px; }
     color:cyan;
 }
 
-#gameContainer {
-    position: relative;
-    width: 800px;
-    height: 400px;
-    margin: 20px auto;
-    background-color: #222;
-    border: 3px solid #fff;
-    overflow: hidden;
+table {
+    margin:20px auto;
+    border-collapse: collapse;
+    width:60%;
 }
-#player { position:absolute; width:40px; height:40px; background:red; }
-.platform { position:absolute; height:20px; background:#888; }
-#greenTrap { position:absolute; width:50px; height:50px; background:green; }
+th, td {
+    border:1px solid white;
+    padding:10px;
+}
+th {
+    background:#333;
+}
 </style>
 </head>
+
 <body>
 
-<!-- START PAGE WITH EMAIL LOGIN -->
+<!-- START PAGE -->
 <div id="startPage" class="room">
     <h1>Escape Room Challenge</h1>
     <p>Enter your email to begin:</p>
     <input type="email" id="loginEmail" placeholder="Your Email">
     <br>
     <button onclick="beginGame()">START GAME</button>
+    <br><br>
+    <button onclick="showLeaderboard()">View Leaderboard</button>
 </div>
 
 <div id="timerDisplay" class="hidden">Time: 0.00s</div>
 
-<!-- ROOM 1 (Original Challenge Kept) -->
+<!-- ROOM 1 -->
 <div id="room1" class="room hidden">
     <h1>Escape Room - Room 1</h1>
     <p>There are many things you can click...</p>
@@ -83,35 +84,34 @@ input,button { padding:10px; margin:10px; }
 
 <div id="passedScreen">YOU PASSED</div>
 
-<!-- ROOM 2 -->
-<div id="room2" class="room hidden">
-    <h1>Room 2 - Platformer</h1>
-    <div id="gameContainer">
-        <div id="player"></div>
-        <div class="platform" style="top:350px; left:0px; width:200px;"></div>
-        <div class="platform" style="top:300px; left:250px; width:200px;"></div>
-        <div class="platform" style="top:250px; left:500px; width:200px;"></div>
-        <div id="greenTrap" style="top:200px; left:750px;"></div>
-    </div>
-</div>
-
 <!-- FINISH PAGE -->
 <div id="finishPage" class="room hidden">
     <h1>YOU ESCAPED</h1>
     <h2 id="finalTime"></h2>
-    <button onclick="submitScore()">Submit Score</button>
-    <p id="submitStatus"></p>
+    <button onclick="saveScore()">Save Score</button>
+</div>
+
+<!-- LEADERBOARD PAGE -->
+<div id="leaderboardPage" class="room hidden">
+    <h1>🏆 Leaderboard (Top 10)</h1>
+    <table id="leaderboardTable">
+        <tr>
+            <th>Rank</th>
+            <th>Email</th>
+            <th>Time (s)</th>
+        </tr>
+    </table>
+    <br>
+    <button onclick="goHome()">Back</button>
 </div>
 
 <script>
-emailjs.init("YOUR_PUBLIC_KEY"); // replace
-
 let playerEmail="";
 let startTime;
 let timerInterval;
 let inactivityTimer;
 
-/* ---------- START GAME ---------- */
+/* ---------- START ---------- */
 
 function beginGame(){
     const emailInput=document.getElementById("loginEmail").value;
@@ -119,6 +119,7 @@ function beginGame(){
         alert("Enter your email first.");
         return;
     }
+
     playerEmail=emailInput;
 
     document.getElementById("startPage").classList.add("hidden");
@@ -131,6 +132,8 @@ function beginGame(){
     resetIdleTimer();
 }
 
+/* ---------- TIMER ---------- */
+
 function updateTimer(){
     let elapsed=(Date.now()-startTime)/1000;
     document.getElementById("timerDisplay").innerText=
@@ -142,100 +145,85 @@ function stopTimer(){
     return ((Date.now()-startTime)/1000).toFixed(2);
 }
 
-/* ---------- ROOM 1 IDLE PASS ---------- */
+/* ---------- ROOM 1 WIN ---------- */
 
 function resetIdleTimer(){
     clearTimeout(inactivityTimer);
-    inactivityTimer=setTimeout(goToRoom2,30000);
+    inactivityTimer=setTimeout(winGame,30000);
 }
 
 document.addEventListener("mousemove",resetIdleTimer);
 document.addEventListener("keypress",resetIdleTimer);
 document.addEventListener("click",resetIdleTimer);
 
-function goToRoom2(){
+function winGame(){
     document.getElementById("passedScreen").style.display="flex";
+
     setTimeout(()=>{
         document.getElementById("passedScreen").style.display="none";
         document.getElementById("room1").classList.add("hidden");
-        document.getElementById("room2").classList.remove("hidden");
-        startPlatformer();
+        document.getElementById("finishPage").classList.remove("hidden");
+
+        let finalTime=stopTimer();
+        window.playerScore=finalTime;
+
+        document.getElementById("finalTime").innerText=
+            "Your Time: "+finalTime+" seconds";
     },3000);
 }
 
-/* ---------- PLATFORMER ---------- */
+/* ---------- LEADERBOARD ---------- */
 
-function startPlatformer(){
-    const player=document.getElementById("player");
-    const trap=document.getElementById("greenTrap");
+function saveScore(){
+    let scores=JSON.parse(localStorage.getItem("escapeScores")) || [];
 
-    let left=0;
-    let bottom=350;
-    let velocityY=0;
-    const gravity=-0.5;
-    const moveSpeed=5;
-    let keys={};
-
-    player.style.left=left+"px";
-    player.style.bottom=bottom+"px";
-
-    document.addEventListener("keydown",e=>keys[e.key]=true);
-    document.addEventListener("keyup",e=>keys[e.key]=false);
-
-    function loop(){
-        if(keys["ArrowLeft"]) left-=moveSpeed;
-        if(keys["ArrowRight"]) left+=moveSpeed;
-
-        velocityY+=gravity;
-        bottom+=velocityY;
-
-        if(bottom<0) bottom=0;
-        if(keys["ArrowUp"] && velocityY===0) velocityY=10;
-
-        player.style.left=left+"px";
-        player.style.bottom=bottom+"px";
-
-        if(player.getBoundingClientRect().right >
-           trap.getBoundingClientRect().left){
-            finishGame();
-            return;
-        }
-
-        requestAnimationFrame(loop);
-    }
-    loop();
-}
-
-/* ---------- FINISH ---------- */
-
-function finishGame(){
-    document.getElementById("room2").classList.add("hidden");
-    document.getElementById("finishPage").classList.remove("hidden");
-
-    let finalTime=stopTimer();
-    window.playerScore=finalTime;
-
-    document.getElementById("finalTime").innerText=
-        "Your Time: "+finalTime+" seconds";
-}
-
-/* ---------- EMAIL SUBMIT ---------- */
-
-function submitScore(){
-    emailjs.send("YOUR_SERVICE_ID","YOUR_TEMPLATE_ID",{
-        to_email:"ah877s@spiritsd.ca",
-        player_email:playerEmail,
-        score:window.playerScore
-    }).then(()=>{
-        document.getElementById("submitStatus").innerText=
-            "Score Submitted Successfully!";
-    },()=>{
-        document.getElementById("submitStatus").innerText=
-            "Error sending score.";
+    scores.push({
+        email:playerEmail,
+        time:parseFloat(window.playerScore)
     });
+
+    scores.sort((a,b)=>a.time-b.time);
+    scores=scores.slice(0,10);
+
+    localStorage.setItem("escapeScores",JSON.stringify(scores));
+
+    showLeaderboard();
+}
+
+function showLeaderboard(){
+    document.querySelectorAll(".room").forEach(r=>r.classList.add("hidden"));
+    document.getElementById("leaderboardPage").classList.remove("hidden");
+
+    const table=document.getElementById("leaderboardTable");
+
+    table.innerHTML=`
+        <tr>
+            <th>Rank</th>
+            <th>Email</th>
+            <th>Time (s)</th>
+        </tr>
+    `;
+
+    let scores=JSON.parse(localStorage.getItem("escapeScores")) || [];
+
+    scores.forEach((score,index)=>{
+        table.innerHTML+=`
+            <tr>
+                <td>${index+1}</td>
+                <td>${score.email}</td>
+                <td>${score.time.toFixed(2)}</td>
+            </tr>
+        `;
+    });
+}
+
+function goHome(){
+    document.querySelectorAll(".room").forEach(r=>r.classList.add("hidden"));
+    document.getElementById("startPage").classList.remove("hidden");
 }
 </script>
 
 </body>
 </html>
-
+</body>
+</html>
