@@ -98,3 +98,137 @@
 
 </body>
 </html>
+<div id="room2" class="room hidden">
+    <h1>Escape Room - Room 2: Platformer</h1>
+    <p>Reach the green block to continue!</p>
+    <div id="gameContainer">
+        <div id="player"></div>
+        <div class="platform" style="top: 300px; left: 50px; width: 200px;"></div>
+        <div class="platform" style="top: 250px; left: 300px; width: 150px;"></div>
+        <div class="platform" style="top: 200px; left: 500px; width: 200px;"></div>
+        <div id="goal" style="top: 150px; left: 700px;"></div>
+    </div>
+</div>
+
+<style>
+    #gameContainer {
+        position: relative;
+        width: 800px;
+        height: 400px;
+        margin: 20px auto;
+        background-color: #222;
+        border: 3px solid #fff;
+        overflow: hidden;
+    }
+
+    #player {
+        position: absolute;
+        width: 40px;
+        height: 40px;
+        background-color: red;
+        bottom: 0;
+        left: 50px;
+    }
+
+    .platform {
+        position: absolute;
+        height: 20px;
+        background-color: #888;
+    }
+
+    #goal {
+        position: absolute;
+        width: 50px;
+        height: 50px;
+        background-color: green;
+    }
+</style>
+
+<script>
+    const player = document.getElementById("player");
+    const goal = document.getElementById("goal");
+    const platforms = document.querySelectorAll(".platform");
+    let left = 50;
+    let bottom = 0;
+    let velocityY = 0;
+    const gravity = -0.5;
+    const moveSpeed = 5;
+    let keys = {};
+
+    document.addEventListener("keydown", e => keys[e.key] = true);
+    document.addEventListener("keyup", e => keys[e.key] = false);
+
+    function rectsOverlap(r1, r2) {
+        return !(r2.left > r1.right || 
+                 r2.right < r1.left || 
+                 r2.top > r1.bottom ||
+                 r2.bottom < r1.top);
+    }
+
+    function gameLoop() {
+        // Horizontal movement
+        if (keys["ArrowLeft"]) left -= moveSpeed;
+        if (keys["ArrowRight"]) left += moveSpeed;
+
+        // Gravity
+        velocityY += gravity;
+        bottom += velocityY;
+
+        // Simple floor collision
+        if (bottom < 0) {
+            bottom = 0;
+            velocityY = 0;
+        }
+
+        // Platform collisions
+        platforms.forEach(p => {
+            const pRect = p.getBoundingClientRect();
+            const cRect = player.getBoundingClientRect();
+            // convert to gameContainer relative
+            const pTop = p.offsetTop;
+            const pLeft = p.offsetLeft;
+            const pRight = pLeft + p.offsetWidth;
+            const pBottom = pTop + p.offsetHeight;
+
+            if (
+                left + 40 > pLeft && left < pRight &&
+                bottom <= pBottom && bottom + 40 >= pTop &&
+                velocityY <= 0
+            ) {
+                bottom = pTop + p.offsetHeight;
+                velocityY = 0;
+            }
+        });
+
+        // Jump
+        if (keys["ArrowUp"] && velocityY === 0) {
+            velocityY = 10;
+        }
+
+        // Update player position
+        player.style.left = left + "px";
+        player.style.bottom = bottom + "px";
+
+        // Check goal
+        const playerRect = player.getBoundingClientRect();
+        const goalRect = goal.getBoundingClientRect();
+
+        if (rectsOverlap(playerRect, goalRect)) {
+            alert("You reached the goal! Moving to Room 3...");
+            document.getElementById("room2").classList.add("hidden");
+            loadRoom3();
+        }
+
+        requestAnimationFrame(gameLoop);
+    }
+
+    gameLoop();
+
+    function loadRoom3() {
+        const room3 = document.createElement("div");
+        room3.id = "room3";
+        room3.className = "room";
+        room3.innerHTML = "<h1>Room 3</h1><p>Congrats! You escaped Room 2.</p>";
+        document.body.appendChild(room3);
+    }
+</script>
