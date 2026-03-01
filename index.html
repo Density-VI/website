@@ -35,6 +35,21 @@ input, button { padding:10px; margin:10px; }
     font-size:22px;
     color:cyan;
 }
+
+/* Leaderboard Styles */
+table {
+    margin: 20px auto;
+    border-collapse: collapse;
+    width: 50%;
+    color: white;
+}
+th, td {
+    padding: 10px;
+    border: 1px solid #fff;
+}
+th {
+    background-color: #333;
+}
 </style>
 </head>
 
@@ -47,6 +62,8 @@ input, button { padding:10px; margin:10px; }
     <input type="email" id="loginEmail" placeholder="Your Email">
     <br>
     <button onclick="beginGame()">START GAME</button>
+    <br><br>
+    <button onclick="showLeaderboard()">View Leaderboard</button>
 </div>
 
 <div id="timerDisplay" class="hidden">Time: 0.00s</div>
@@ -80,15 +97,27 @@ input, button { padding:10px; margin:10px; }
     <p id="submitStatus"></p>
 </div>
 
+<!-- LEADERBOARD PAGE -->
+<div id="leaderboardPage" class="room hidden">
+    <h1>🏆 Global Leaderboard</h1>
+    <table id="leaderboardTable">
+        <tr>
+            <th>Rank</th>
+            <th>Email</th>
+            <th>Score</th>
+        </tr>
+    </table>
+    <br>
+    <button onclick="goHome()">Back</button>
+</div>
+
 <script>
-emailjs.init("YOUR_PUBLIC_KEY"); // replace this
+emailjs.init("YOUR_PUBLIC_KEY"); // replace this with your public EmailJS key
 
 let playerEmail="";
 let startTime;
 let timerInterval;
 let inactivityTimer;
-
-/* ---------- START ---------- */
 
 function beginGame(){
     const emailInput=document.getElementById("loginEmail").value;
@@ -109,20 +138,15 @@ function beginGame(){
     resetIdleTimer();
 }
 
-/* ---------- TIMER ---------- */
-
 function updateTimer(){
     let elapsed=(Date.now()-startTime)/1000;
-    document.getElementById("timerDisplay").innerText=
-        "Time: "+elapsed.toFixed(2)+"s";
+    document.getElementById("timerDisplay").innerText="Time: "+elapsed.toFixed(2)+"s";
 }
 
 function stopTimer(){
     clearInterval(timerInterval);
     return ((Date.now()-startTime)/1000).toFixed(2);
 }
-
-/* ---------- ROOM 1 IDLE WIN ---------- */
 
 function resetIdleTimer(){
     clearTimeout(inactivityTimer);
@@ -135,7 +159,6 @@ document.addEventListener("click",resetIdleTimer);
 
 function winGame(){
     document.getElementById("passedScreen").style.display="flex";
-
     setTimeout(()=>{
         document.getElementById("passedScreen").style.display="none";
         document.getElementById("room1").classList.add("hidden");
@@ -143,26 +166,45 @@ function winGame(){
 
         let finalTime=stopTimer();
         window.playerScore=finalTime;
-
-        document.getElementById("finalTime").innerText=
-            "Your Time: "+finalTime+" seconds";
+        document.getElementById("finalTime").innerText="Your Time: "+finalTime+" seconds";
     },3000);
 }
 
-/* ---------- EMAIL SUBMIT ---------- */
-
 function submitScore(){
-    emailjs.send("YOUR_SERVICE_ID","YOUR_TEMPLATE_ID",{
-        to_email:"YOUR_EMAIL@gmail.com", // put your email here
-        player_email:playerEmail,
-        score:window.playerScore
-    }).then(()=>{
-        document.getElementById("submitStatus").innerText=
-            "Score Submitted Successfully!";
-    },()=>{
-        document.getElementById("submitStatus").innerText=
-            "Error sending score.";
+    // Submit to Google Sheets
+    fetch('YOUR_GOOGLE_SCRIPT_URL', {
+        method: 'POST',
+        body: new URLSearchParams({
+            'email': playerEmail,
+            'score': window.playerScore
+        })
+    }).then(response => {
+        document.getElementById("submitStatus").innerText="Score Submitted Successfully!";
+    }).catch(() => {
+        document.getElementById("submitStatus").innerText="Error submitting score.";
     });
+}
+
+function showLeaderboard(){
+    document.querySelectorAll(".room").forEach(r=>r.classList.add("hidden"));
+    document.getElementById("leaderboardPage").classList.remove("hidden");
+
+    // Fetch leaderboard data from Google Sheets
+    fetch('YOUR_GOOGLE_SCRIPT_URL') // Replace with your Google Apps Script URL
+        .then(response => response.json())
+        .then(data => {
+            let table = document.getElementById("leaderboardTable");
+            data.forEach((entry, index) => {
+                let row = table.insertRow();
+                row.insertCell(0).textContent = index + 1;
+                row.insertCell(1).textContent = entry.email;
+                row.insertCell(2).textContent = entry.score;
+            });
+        });
+}
+
+function goHome() {
+    location.reload();
 }
 </script>
 
