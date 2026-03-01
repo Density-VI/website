@@ -61,21 +61,12 @@
             width: 40px;
             height: 40px;
             background-color: red;
-            bottom: 0;
-            left: 50px;
         }
 
         .platform {
             position: absolute;
             height: 20px;
             background-color: #888;
-        }
-
-        #goal {
-            position: absolute;
-            width: 50px;
-            height: 50px;
-            background-color: green;
         }
     </style>
 </head>
@@ -85,12 +76,9 @@
 <div id="room1" class="room">
     <h1>Escape Room - Room 1</h1>
     <p>There are many things you can click...</p>
-
     <p><a onclick="alert('Just a distraction!')">Mysterious Link</a></p>
-
     <p>Enter the secret code:</p>
     <input type="text" placeholder="Type something...">
-
     <p><button onclick="alert('Nothing happens... or does it?')">Strange Button</button></p>
 </div>
 
@@ -101,14 +89,13 @@
 <!-- ROOM 2 -->
 <div id="room2" class="room hidden">
     <h1>Escape Room - Room 2: Platformer</h1>
-    <p>Reach the green block to continue! (Or die 5 times and move on)</p>
+    <p>Fall 5 times to continue!</p>
     <p>Deaths: <span id="deathCount">0</span>/5</p>
     <div id="gameContainer">
         <div id="player"></div>
         <div class="platform" style="top: 300px; left: 50px; width: 200px;"></div>
         <div class="platform" style="top: 250px; left: 300px; width: 150px;"></div>
         <div class="platform" style="top: 200px; left: 500px; width: 200px;"></div>
-        <div id="goal" style="top: 150px; left: 700px;"></div>
     </div>
 </div>
 
@@ -144,42 +131,41 @@
     // -------------------
     function startPlatformer() {
         const player = document.getElementById("player");
-        const goal = document.getElementById("goal");
         const platforms = document.querySelectorAll(".platform");
         const deathDisplay = document.getElementById("deathCount");
         let left = 50;
-        let bottom = 0;
+        let bottom = 300; // start on first platform
         let velocityY = 0;
         const gravity = -0.5;
         const moveSpeed = 5;
         let keys = {};
         let deaths = 0;
         const maxDeaths = 5;
+        let room3Loaded = false; // prevent multiple loads
+
+        // place player on first platform
+        player.style.left = left + "px";
+        player.style.bottom = bottom + "px";
 
         document.addEventListener("keydown", e => keys[e.key] = true);
         document.addEventListener("keyup", e => keys[e.key] = false);
 
-        function rectsOverlap(r1, r2) {
-            return !(r2.left > r1.right || 
-                     r2.right < r1.left || 
-                     r2.top > r1.bottom ||
-                     r2.bottom < r1.top);
-        }
-
         function resetPlayer() {
+            if (room3Loaded) return;
             left = 50;
-            bottom = 0;
+            bottom = 300;
             velocityY = 0;
             deaths++;
             deathDisplay.textContent = deaths;
             if (deaths >= maxDeaths) {
+                room3Loaded = true;
                 alert("You died 5 times! Moving to Room 3...");
                 loadRoom3();
             }
         }
 
         function gameLoop() {
-            if (!document.getElementById("room2")) return;
+            if (room3Loaded) return;
 
             // Horizontal movement
             if (keys["ArrowLeft"]) left -= moveSpeed;
@@ -215,14 +201,6 @@
             // Update player
             player.style.left = left + "px";
             player.style.bottom = bottom + "px";
-
-            // Check goal
-            const playerRect = player.getBoundingClientRect();
-            const goalRect = goal.getBoundingClientRect();
-            if (rectsOverlap(playerRect, goalRect)) {
-                alert("You reached the goal! Moving to Room 3...");
-                loadRoom3();
-            }
 
             requestAnimationFrame(gameLoop);
         }
