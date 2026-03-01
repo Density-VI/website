@@ -11,7 +11,7 @@
 body { font-family: Arial; background:#111; color:white; text-align:center; margin:0; }
 .room { padding:40px; }
 .hidden { display:none; }
-input, button { padding:10px; margin:10px; }
+input, button, a { padding:10px; margin:5px; cursor:pointer; color:cyan; text-decoration:none; }
 
 #passedScreen {
     display:none; position:fixed; top:0; left:0;
@@ -41,10 +41,21 @@ th { background:#333; }
 
 <div id="timerDisplay" class="hidden">Time: 0.00s</div>
 
-<!-- ROOM 1 -->
+<!-- ROOM 1 (original chaos room) -->
 <div id="room1" class="room hidden">
-    <h1>Room 1</h1>
-    <p>Wait patiently...</p>
+    <h1>Room 1 - Chaos!</h1>
+    <p>Click around and see what happens...</p>
+
+    <a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" target="_blank">Click Me I Dare You</a>
+    <br>
+    <button onclick="alert('Nothing happened... or did it?')">Button 1</button>
+    <button onclick="alert('Try another button!')">Button 2</button>
+    <button onclick="alert('Keep clicking!')">Button 3</button>
+    <br>
+    <input type="text" id="secretCode" placeholder="Enter the secret code">
+    <button onclick="checkCode()">Submit Code</button>
+    <p>Some buttons are just strange...</p>
+    <button onclick="alert('If the answer is what you seek you must mute and find peace')">Strange Button</button>
 </div>
 
 <div id="passedScreen">YOU PASSED</div>
@@ -93,10 +104,7 @@ var gameStarted = false;
 // ----------------- START GAME -----------------
 function beginGame() {
     var emailInput = document.getElementById("loginEmail").value.trim();
-    if (!emailInput) {
-        alert("Enter email first");
-        return;
-    }
+    if (!emailInput) { alert("Enter email first"); return; }
     if (gameStarted) return;
 
     gameStarted = true;
@@ -117,18 +125,17 @@ function startTimer() {
         document.getElementById("timerDisplay").innerText = "Time: " + elapsed.toFixed(2) + "s";
     },10);
 
-    inactivityTimer = setTimeout(winGame, 30000); // 30 seconds idle win
+    inactivityTimer = setTimeout(winGame, 30000); // 30 seconds idle
 }
 
+// ----------------- WIN GAME -----------------
 function stopTimer() {
     clearInterval(timerInterval);
     clearTimeout(inactivityTimer);
 }
 
-// ----------------- WIN GAME -----------------
 function winGame() {
     stopTimer();
-
     document.getElementById("passedScreen").style.display = "flex";
 
     setTimeout(function(){
@@ -140,6 +147,17 @@ function winGame() {
         window.playerScore = parseFloat(finalTime);
         document.getElementById("finalTime").innerText = "Your Time: " + finalTime + " seconds";
     },3000);
+}
+
+// ----------------- SECRET CODE -----------------
+function checkCode(){
+    var code = document.getElementById("secretCode").value.trim().toLowerCase();
+    if(code === "open-sesame"){
+        alert("You found the secret code! You win early!");
+        winGame();
+    } else {
+        alert("Wrong code. Keep looking...");
+    }
 }
 
 // ----------------- SAVE SCORE -----------------
