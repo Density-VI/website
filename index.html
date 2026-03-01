@@ -21,19 +21,14 @@
 <script>
 window.onload = function() {
     if (localStorage.getItem("submitted") === "true") {
-        disableForm();
+        document.getElementById("answerForm").style.display = "none";
+        document.getElementById("message").innerHTML = "You have already submitted.";
     }
 };
 
 document.getElementById("answerForm").addEventListener("submit", function() {
     localStorage.setItem("submitted", "true");
 });
-
-function disableForm() {
-    document.getElementById("answer").style.display = "none";
-    document.getElementById("submitBtn").style.display = "none";
-    document.getElementById("message").innerHTML = "You have already submitted.";
-}
 </script>
 
 </body>
