@@ -68,6 +68,13 @@
             height: 20px;
             background-color: #888;
         }
+
+        #greenTrap {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background-color: green;
+        }
     </style>
 </head>
 <body>
@@ -89,13 +96,18 @@
 <!-- ROOM 2 -->
 <div id="room2" class="room hidden">
     <h1>Escape Room - Room 2: Platformer</h1>
-    <p>Fall 5 times to continue!</p>
+    <p>Fall 5 times to continue! Avoid the green trap block!</p>
     <p>Deaths: <span id="deathCount">0</span>/5</p>
     <div id="gameContainer">
         <div id="player"></div>
-        <div class="platform" style="top: 300px; left: 50px; width: 200px;"></div>
-        <div class="platform" style="top: 250px; left: 300px; width: 150px;"></div>
-        <div class="platform" style="top: 200px; left: 500px; width: 200px;"></div>
+        <!-- Platforms -->
+        <div class="platform" style="top: 350px; left: 0px; width: 200px;"></div>
+        <div class="platform" style="top: 300px; left: 220px; width: 150px;"></div>
+        <div class="platform" style="top: 250px; left: 400px; width: 150px;"></div>
+        <div class="platform" style="top: 200px; left: 600px; width: 150px;"></div>
+        <div class="platform" style="top: 150px; left: 200px; width: 150px;"></div>
+        <!-- Green trap -->
+        <div id="greenTrap" style="top: 100px; left: 700px;"></div>
     </div>
 </div>
 
@@ -132,18 +144,18 @@
     function startPlatformer() {
         const player = document.getElementById("player");
         const platforms = document.querySelectorAll(".platform");
+        const greenTrap = document.getElementById("greenTrap");
         const deathDisplay = document.getElementById("deathCount");
-        let left = 50;
-        let bottom = 300; // start on first platform
+        let left = 0;
+        let bottom = 350; // starting on first platform
         let velocityY = 0;
         const gravity = -0.5;
         const moveSpeed = 5;
         let keys = {};
         let deaths = 0;
         const maxDeaths = 5;
-        let room3Loaded = false; // prevent multiple loads
+        let room1Restarted = false; // only restart room1 once
 
-        // place player on first platform
         player.style.left = left + "px";
         player.style.bottom = bottom + "px";
 
@@ -151,22 +163,33 @@
         document.addEventListener("keyup", e => keys[e.key] = false);
 
         function resetPlayer() {
-            if (room3Loaded) return;
-            left = 50;
-            bottom = 300;
+            left = 0;
+            bottom = 350;
             velocityY = 0;
             deaths++;
             deathDisplay.textContent = deaths;
             if (deaths >= maxDeaths) {
-                room3Loaded = true;
                 alert("You died 5 times! Moving to Room 3...");
                 loadRoom3();
             }
         }
 
-        function gameLoop() {
-            if (room3Loaded) return;
+        function goBackToRoom1() {
+            if (room1Restarted) return;
+            room1Restarted = true;
+            document.getElementById("room2").classList.add("hidden");
+            document.getElementById("room1").classList.remove("hidden");
+            resetTimer(); // restart idle timer in Room 1
+        }
 
+        function rectsOverlap(r1, r2) {
+            return !(r2.left > r1.right ||
+                     r2.right < r1.left ||
+                     r2.top > r1.bottom ||
+                     r2.bottom < r1.top);
+        }
+
+        function gameLoop() {
             // Horizontal movement
             if (keys["ArrowLeft"]) left -= moveSpeed;
             if (keys["ArrowRight"]) left += moveSpeed;
@@ -201,6 +224,13 @@
             // Update player
             player.style.left = left + "px";
             player.style.bottom = bottom + "px";
+
+            // Check green trap
+            const playerRect = player.getBoundingClientRect();
+            const trapRect = greenTrap.getBoundingClientRect();
+            if (rectsOverlap(playerRect, trapRect)) {
+                goBackToRoom1();
+            }
 
             requestAnimationFrame(gameLoop);
         }
