@@ -44,10 +44,44 @@
         .hidden {
             display: none;
         }
+
+        /* Platformer styles */
+        #gameContainer {
+            position: relative;
+            width: 800px;
+            height: 400px;
+            margin: 20px auto;
+            background-color: #222;
+            border: 3px solid #fff;
+            overflow: hidden;
+        }
+
+        #player {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background-color: red;
+            bottom: 0;
+            left: 50px;
+        }
+
+        .platform {
+            position: absolute;
+            height: 20px;
+            background-color: #888;
+        }
+
+        #goal {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background-color: green;
+        }
     </style>
 </head>
 <body>
 
+<!-- ROOM 1 -->
 <div id="room1" class="room">
     <h1>Escape Room - Room 1</h1>
     <p>There are many things you can click...</p>
@@ -64,43 +98,11 @@
     YOU PASSED
 </div>
 
-<div id="room2" class="room hidden">
-    <h1>Room 2</h1>
-    <p>Welcome to the next challenge...</p>
-</div>
-
-<script>
-    let timeout;
-
-    function resetTimer() {
-        clearTimeout(timeout);
-        timeout = setTimeout(goToNextRoom, 30000); // 30 seconds
-    }
-
-    function goToNextRoom() {
-        document.getElementById("passedScreen").style.display = "flex";
-        
-        setTimeout(function() {
-            document.getElementById("passedScreen").style.display = "none";
-            document.getElementById("room1").classList.add("hidden");
-            document.getElementById("room2").classList.remove("hidden");
-        }, 3000);
-    }
-
-    // Detect user activity
-    document.addEventListener("mousemove", resetTimer);
-    document.addEventListener("keypress", resetTimer);
-    document.addEventListener("click", resetTimer);
-
-    // Start timer on page load
-    resetTimer();
-</script>
-
-</body>
-</html>
+<!-- ROOM 2 -->
 <div id="room2" class="room hidden">
     <h1>Escape Room - Room 2: Platformer</h1>
-    <p>Reach the green block to continue!</p>
+    <p>Reach the green block to continue! (Or die 5 times and move on)</p>
+    <p>Deaths: <span id="deathCount">0</span>/5</p>
     <div id="gameContainer">
         <div id="player"></div>
         <div class="platform" style="top: 300px; left: 50px; width: 200px;"></div>
@@ -110,125 +112,133 @@
     </div>
 </div>
 
-<style>
-    #gameContainer {
-        position: relative;
-        width: 800px;
-        height: 400px;
-        margin: 20px auto;
-        background-color: #222;
-        border: 3px solid #fff;
-        overflow: hidden;
-    }
-
-    #player {
-        position: absolute;
-        width: 40px;
-        height: 40px;
-        background-color: red;
-        bottom: 0;
-        left: 50px;
-    }
-
-    .platform {
-        position: absolute;
-        height: 20px;
-        background-color: #888;
-    }
-
-    #goal {
-        position: absolute;
-        width: 50px;
-        height: 50px;
-        background-color: green;
-    }
-</style>
-
 <script>
-    const player = document.getElementById("player");
-    const goal = document.getElementById("goal");
-    const platforms = document.querySelectorAll(".platform");
-    let left = 50;
-    let bottom = 0;
-    let velocityY = 0;
-    const gravity = -0.5;
-    const moveSpeed = 5;
-    let keys = {};
+    // -------------------
+    // ROOM 1 LOGIC
+    // -------------------
+    let timeout;
 
-    document.addEventListener("keydown", e => keys[e.key] = true);
-    document.addEventListener("keyup", e => keys[e.key] = false);
-
-    function rectsOverlap(r1, r2) {
-        return !(r2.left > r1.right || 
-                 r2.right < r1.left || 
-                 r2.top > r1.bottom ||
-                 r2.bottom < r1.top);
+    function resetTimer() {
+        clearTimeout(timeout);
+        timeout = setTimeout(goToRoom2, 30000); // 30 seconds idle
     }
 
-    function gameLoop() {
-        // Horizontal movement
-        if (keys["ArrowLeft"]) left -= moveSpeed;
-        if (keys["ArrowRight"]) left += moveSpeed;
+    function goToRoom2() {
+        document.getElementById("passedScreen").style.display = "flex";
+        setTimeout(function() {
+            document.getElementById("passedScreen").style.display = "none";
+            document.getElementById("room1").classList.add("hidden");
+            document.getElementById("room2").classList.remove("hidden");
+            startPlatformer();
+        }, 3000);
+    }
 
-        // Gravity
-        velocityY += gravity;
-        bottom += velocityY;
+    document.addEventListener("mousemove", resetTimer);
+    document.addEventListener("keypress", resetTimer);
+    document.addEventListener("click", resetTimer);
 
-        // Simple floor collision
-        if (bottom < 0) {
+    resetTimer(); // start timer on load
+
+    // -------------------
+    // ROOM 2 PLATFORMER
+    // -------------------
+    function startPlatformer() {
+        const player = document.getElementById("player");
+        const goal = document.getElementById("goal");
+        const platforms = document.querySelectorAll(".platform");
+        const deathDisplay = document.getElementById("deathCount");
+        let left = 50;
+        let bottom = 0;
+        let velocityY = 0;
+        const gravity = -0.5;
+        const moveSpeed = 5;
+        let keys = {};
+        let deaths = 0;
+        const maxDeaths = 5;
+
+        document.addEventListener("keydown", e => keys[e.key] = true);
+        document.addEventListener("keyup", e => keys[e.key] = false);
+
+        function rectsOverlap(r1, r2) {
+            return !(r2.left > r1.right || 
+                     r2.right < r1.left || 
+                     r2.top > r1.bottom ||
+                     r2.bottom < r1.top);
+        }
+
+        function resetPlayer() {
+            left = 50;
             bottom = 0;
             velocityY = 0;
-        }
-
-        // Platform collisions
-        platforms.forEach(p => {
-            const pRect = p.getBoundingClientRect();
-            const cRect = player.getBoundingClientRect();
-            // convert to gameContainer relative
-            const pTop = p.offsetTop;
-            const pLeft = p.offsetLeft;
-            const pRight = pLeft + p.offsetWidth;
-            const pBottom = pTop + p.offsetHeight;
-
-            if (
-                left + 40 > pLeft && left < pRight &&
-                bottom <= pBottom && bottom + 40 >= pTop &&
-                velocityY <= 0
-            ) {
-                bottom = pTop + p.offsetHeight;
-                velocityY = 0;
+            deaths++;
+            deathDisplay.textContent = deaths;
+            if (deaths >= maxDeaths) {
+                alert("You died 5 times! Moving to Room 3...");
+                loadRoom3();
             }
-        });
-
-        // Jump
-        if (keys["ArrowUp"] && velocityY === 0) {
-            velocityY = 10;
         }
 
-        // Update player position
-        player.style.left = left + "px";
-        player.style.bottom = bottom + "px";
+        function gameLoop() {
+            if (!document.getElementById("room2")) return;
 
-        // Check goal
-        const playerRect = player.getBoundingClientRect();
-        const goalRect = goal.getBoundingClientRect();
+            // Horizontal movement
+            if (keys["ArrowLeft"]) left -= moveSpeed;
+            if (keys["ArrowRight"]) left += moveSpeed;
 
-        if (rectsOverlap(playerRect, goalRect)) {
-            alert("You reached the goal! Moving to Room 3...");
+            // Gravity
+            velocityY += gravity;
+            bottom += velocityY;
+
+            // Fell off screen
+            if (bottom < -50) resetPlayer();
+
+            // Platform collisions
+            platforms.forEach(p => {
+                const pTop = p.offsetTop;
+                const pLeft = p.offsetLeft;
+                const pRight = pLeft + p.offsetWidth;
+                const pBottom = pTop + p.offsetHeight;
+
+                if (
+                    left + 40 > pLeft && left < pRight &&
+                    bottom <= pBottom && bottom + 40 >= pTop &&
+                    velocityY <= 0
+                ) {
+                    bottom = pTop + p.offsetHeight;
+                    velocityY = 0;
+                }
+            });
+
+            // Jump
+            if (keys["ArrowUp"] && velocityY === 0) velocityY = 10;
+
+            // Update player
+            player.style.left = left + "px";
+            player.style.bottom = bottom + "px";
+
+            // Check goal
+            const playerRect = player.getBoundingClientRect();
+            const goalRect = goal.getBoundingClientRect();
+            if (rectsOverlap(playerRect, goalRect)) {
+                alert("You reached the goal! Moving to Room 3...");
+                loadRoom3();
+            }
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        gameLoop();
+
+        function loadRoom3() {
             document.getElementById("room2").classList.add("hidden");
-            loadRoom3();
+            const room3 = document.createElement("div");
+            room3.id = "room3";
+            room3.className = "room";
+            room3.innerHTML = "<h1>Room 3</h1><p>Congrats! You escaped Room 2.</p>";
+            document.body.appendChild(room3);
         }
-
-        requestAnimationFrame(gameLoop);
-    }
-
-    gameLoop();
-
-    function loadRoom3() {
-        const room3 = document.createElement("div");
-        room3.id = "room3";
-        room3.className = "room";
-        room3.innerHTML = "<h1>Room 3</h1><p>Congrats! You escaped Room 2.</p>";
-        document.body.appendChild(room3);
     }
 </script>
+
+</body>
+</html>
