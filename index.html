@@ -195,15 +195,26 @@ function checkCode(){
 
 // ----- SUBMIT SCORE TO FIRESTORE -----
 function submitScore() {
+    console.log("Submit Score triggered");
+
+    const playerScore = parseFloat(window.playerScore);
+    if (isNaN(playerScore)) {
+        console.error("Invalid score");
+        document.getElementById("submitStatus").innerText = "Error: Invalid score!";
+        return;
+    }
+
     db.collection("scores").add({
         email: playerEmail,
-        score: parseFloat(window.playerScore),
+        score: playerScore,
         created: Date.now()
     }).then(()=>{
+        console.log("Score submitted successfully");
         document.getElementById("submitStatus").innerText = "Score submitted!";
         showLeaderboard();
-    }).catch(err=>{
-        document.getElementById("submitStatus").innerText = "Error: "+err;
+    }).catch(err => {
+        console.error("Error submitting score", err);
+        document.getElementById("submitStatus").innerText = "Error: " + err.message;
     });
 }
 
@@ -218,19 +229,8 @@ function showLeaderboard() {
     db.collection("scores").orderBy("score").limit(10).get()
     .then(snapshot => {
         let rank = 1;
-        snapshot.forEach(doc=>{
+        snapshot.forEach(doc => {
             const data = doc.data();
             let row = table.insertRow();
             row.insertCell(0).textContent = rank++;
-            row.insertCell(1).textContent = data.email;
-            row.insertCell(2).textContent = data.score.toFixed(2);
-        });
-    });
-}
-
-// ----- GO HOME -----
-function goHome() { location.reload(); }
-</script>
-
-</body>
-</html>
+           
