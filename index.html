@@ -1,58 +1,59 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>Escape Room</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Escape Room</title>
 
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
-<style>
-body {
-    font-family: Arial, sans-serif;
-    background-color: #111;
-    color: white;
-    text-align: center;
-    margin: 0;
-    padding: 0;
-}
-.room { padding: 40px; }
-.hidden { display:none; }
-input, button { padding:10px; margin:10px; cursor: pointer; }
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #111;
+            color: white;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+        .room { padding: 40px; }
+        .hidden { display: none; }
+        input, button { padding: 10px; margin: 10px; cursor: pointer; }
 
-#passedScreen {
-    display:none;
-    position: fixed;
-    top:0; left:0;
-    width:100%; height:100%;
-    background-color:black;
-    color:lime;
-    font-size:70px;
-    font-weight:bold;
-    justify-content:center;
-    align-items:center;
-}
+        #passedScreen {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: black;
+            color: lime;
+            font-size: 70px;
+            font-weight: bold;
+            justify-content: center;
+            align-items: center;
+        }
 
-#timerDisplay{
-    font-size:22px;
-    color:cyan;
-}
+        #timerDisplay {
+            font-size: 22px;
+            color: cyan;
+        }
 
-/* Leaderboard Styles */
-table {
-    margin: 20px auto;
-    border-collapse: collapse;
-    width: 50%;
-    color: white;
-}
-th, td {
-    padding: 10px;
-    border: 1px solid #fff;
-}
-th {
-    background-color: #333;
-}
-</style>
+        table {
+            margin: 20px auto;
+            border-collapse: collapse;
+            width: 50%;
+            color: white;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #fff;
+        }
+        th {
+            background-color: #333;
+        }
+    </style>
 </head>
 
 <body>
@@ -68,27 +69,29 @@ th {
     <button id="leaderboardBtn" onclick="showLeaderboard()">View Leaderboard</button>
 </div>
 
+<!-- TIMER DISPLAY -->
 <div id="timerDisplay" class="hidden">Time: 0.00s</div>
 
 <!-- ROOM 1 -->
 <div id="room1" class="room hidden">
     <h1>Escape Room - Room 1</h1>
     <p>There are many things you can click...</p>
-
     <a href="https://www.bing.com/videos/riverview/relatedvideo?q=rick+aslty+never" target="_blank">
         Click Me I Dare You
     </a>
 
     <p>Enter the secret code:</p>
     <input type="text" id="secretCode" placeholder="Type something...">
+    <button onclick="checkCode()">Check Code</button>
 
     <p>
-    <button onclick="alert('if the answer is what you seek you must mute and find peace')">
-        Strange Button
-    </button>
+        <button onclick="alert('if the answer is what you seek you must mute and find peace')">
+            Strange Button
+        </button>
     </p>
 </div>
 
+<!-- PASSED SCREEN -->
 <div id="passedScreen">YOU PASSED</div>
 
 <!-- FINISH PAGE -->
@@ -117,12 +120,12 @@ th {
 // ----- FIREBASE CONFIG -----
 // Replace these with your Firebase Web App config
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_PROJECT_ID.appspot.com",
+    messagingSenderId: "YOUR_SENDER_ID",
+    appId: "YOUR_APP_ID"
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
@@ -136,7 +139,10 @@ let inactivityTimer;
 // ----- START GAME -----
 function beginGame() {
     const emailInput = document.getElementById("loginEmail").value;
-    if (!emailInput) { alert("Enter your email first."); return; }
+    if (!emailInput) {
+        alert("Enter your email first.");
+        return;
+    }
     playerEmail = emailInput;
 
     document.getElementById("startPage").classList.add("hidden");
@@ -151,13 +157,13 @@ function beginGame() {
 
 // ----- TIMER -----
 function updateTimer() {
-    const elapsed = (Date.now() - startTime)/1000;
-    document.getElementById("timerDisplay").innerText = "Time: "+elapsed.toFixed(2)+"s";
+    const elapsed = (Date.now() - startTime) / 1000;
+    document.getElementById("timerDisplay").innerText = "Time: " + elapsed.toFixed(2) + "s";
 }
 
 function stopTimer() {
     clearInterval(timerInterval);
-    return ((Date.now()-startTime)/1000).toFixed(2);
+    return ((Date.now() - startTime) / 1000).toFixed(2);
 }
 
 // ----- IDLE WIN -----
@@ -172,25 +178,27 @@ document.addEventListener("click", resetIdleTimer);
 
 // ----- WIN GAME -----
 function winGame() {
-    document.getElementById("passedScreen").style.display="flex";
-    setTimeout(()=>{
-        document.getElementById("passedScreen").style.display="none";
+    document.getElementById("passedScreen").style.display = "flex";
+    setTimeout(() => {
+        document.getElementById("passedScreen").style.display = "none";
         document.getElementById("room1").classList.add("hidden");
         document.getElementById("finishPage").classList.remove("hidden");
 
         const finalTime = stopTimer();
         window.playerScore = finalTime;
-        document.getElementById("finalTime").innerText = "Your Time: "+finalTime+" seconds";
+        document.getElementById("finalTime").innerText = "Your Time: " + finalTime + " seconds";
     }, 3000);
 }
 
 // ----- SECRET CODE -----
-function checkCode(){
+function checkCode() {
     const code = document.getElementById("secretCode").value.trim().toLowerCase();
-    if(code === "open-sesame"){
+    if (code === "open-sesame") {
         alert("Secret code found! You win early!");
         winGame();
-    } else alert("Wrong code...");
+    } else {
+        alert("Wrong code...");
+    }
 }
 
 // ----- SUBMIT SCORE TO FIRESTORE -----
@@ -204,14 +212,15 @@ function submitScore() {
         return;
     }
 
+    // Add score to Firestore
     db.collection("scores").add({
         email: playerEmail,
         score: playerScore,
         created: Date.now()
-    }).then(()=>{
+    }).then(() => {
         console.log("Score submitted successfully");
         document.getElementById("submitStatus").innerText = "Score submitted!";
-        showLeaderboard();
+        showLeaderboard(); // After submitting, show the leaderboard
     }).catch(err => {
         console.error("Error submitting score", err);
         document.getElementById("submitStatus").innerText = "Error: " + err.message;
@@ -220,28 +229,17 @@ function submitScore() {
 
 // ----- SHOW LEADERBOARD -----
 function showLeaderboard() {
-    document.querySelectorAll(".room").forEach(r=>r.classList.add("hidden"));
+    document.querySelectorAll(".room").forEach(r => r.classList.add("hidden"));
     document.getElementById("leaderboardPage").classList.remove("hidden");
 
     const table = document.getElementById("leaderboardTable");
     table.innerHTML = `<tr><th>Rank</th><th>Email</th><th>Time (s)</th></tr>`;
 
+    // Fetch leaderboard from Firestore
     db.collection("scores").orderBy("score").limit(10).get()
-    .then(snapshot => {
-        let rank = 1;
-        snapshot.forEach(doc => {
-            const data = doc.data();
-            let row = table.insertRow();
-            row.insertCell(0).textContent = rank++;
-            row.insertCell(1).textContent = data.email;
-            row.insertCell(2).textContent = data.score.toFixed(2);
-        });
-    });
-}
-
-// ----- GO HOME -----
-function goHome() { location.reload(); }
-</script>
-
-</body>
-</html>
+        .then(snapshot => {
+            let rank = 1;
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                let row = table.insertRow();
+                row.insertCell(0).textContent = rank
