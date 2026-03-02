@@ -2,144 +2,91 @@
 <html>
 <head>
 <title>Escape Room</title>
-
-<script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <style>
-body {
-    font-family: Arial, sans-serif;
-    background-color: #111;
-    color: white;
-    text-align: center;
-    margin: 0;
-    padding: 0;
-}
-.room { padding: 40px; }
+body { font-family: Arial; background:#111; color:white; text-align:center; margin:0; padding:0; }
+.room { padding:40px; }
 .hidden { display:none; }
 input, button { padding:10px; margin:10px; }
+#passedScreen { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:black; color:lime; font-size:70px; font-weight:bold; justify-content:center; align-items:center; }
+#timerDisplay { font-size:22px; color:cyan; }
 
-#passedScreen {
-    display:none;
-    position: fixed;
-    top:0; left:0;
-    width:100%; height:100%;
-    background-color:black;
-    color:lime;
-    font-size:70px;
-    font-weight:bold;
-    justify-content:center;
-    align-items:center;
-}
-
-#timerDisplay{
-    font-size:22px;
-    color:cyan;
-}
-
-/* Leaderboard Styles */
-table {
-    margin: 20px auto;
-    border-collapse: collapse;
-    width: 50%;
-    color: white;
-}
-th, td {
-    padding: 10px;
-    border: 1px solid #fff;
-}
-th {
-    background-color: #333;
-}
+/* Leaderboard */
+table { margin:20px auto; border-collapse: collapse; width:60%; color:white; }
+th, td { padding:10px; border:1px solid #fff; }
+th { background:#333; }
 </style>
 </head>
-
 <body>
 
 <!-- START PAGE -->
 <div id="startPage" class="room">
-    <h1>Escape Room Challenge</h1>
-    <p>Enter your email to begin:</p>
-    <input type="email" id="loginEmail" placeholder="Your Email">
-    <br>
-    <button onclick="beginGame()">START GAME</button>
-    <br><br>
-    <button onclick="showLeaderboard()">View Leaderboard</button>
+<h1>Escape Room Challenge</h1>
+<p>Enter your email to begin:</p>
+<input type="email" id="loginEmail" placeholder="Your Email">
+<br>
+<button onclick="beginGame()">START GAME</button>
+<br><br>
+<button onclick="showLeaderboard()">View Leaderboard</button>
 </div>
 
 <div id="timerDisplay" class="hidden">Time: 0.00s</div>
 
 <!-- ROOM 1 -->
 <div id="room1" class="room hidden">
-    <h1>Escape Room - Room 1</h1>
-    <p>There are many things you can click...</p>
-
-    <a href="https://www.bing.com/videos/riverview/relatedvideo?q=rick+aslty+never" target="_blank">
-        Click Me I Dare You
-    </a>
-
-    <p>Enter the secret code:</p>
-    <input type="text" placeholder="Type something...">
-
-    <p>
-    <button onclick="alert('if the answer is what you seek you must mute and find peace')">
-        Strange Button
-    </button>
-    </p>
+<h1>Escape Room - Room 1</h1>
+<p>Click anything…</p>
+<a href="https://www.bing.com/videos/riverview/relatedvideo?q=rick+aslty+never" target="_blank">Click Me I Dare You</a>
+<p>Enter the secret code:</p>
+<input type="text" id="secretCode" placeholder="Type something...">
+<p><button onclick="alert('If the answer is what you seek you must mute and find peace')">Strange Button</button></p>
 </div>
 
 <div id="passedScreen">YOU PASSED</div>
 
 <!-- FINISH PAGE -->
 <div id="finishPage" class="room hidden">
-    <h1>YOU ESCAPED</h1>
-    <h2 id="finalTime"></h2>
-    <button onclick="submitScore()">Submit Score</button>
-    <p id="submitStatus"></p>
+<h1>YOU ESCAPED</h1>
+<h2 id="finalTime"></h2>
+<button onclick="submitScore()">Submit Score</button>
+<p id="submitStatus"></p>
 </div>
 
 <!-- LEADERBOARD PAGE -->
 <div id="leaderboardPage" class="room hidden">
-    <h1>🏆 Global Leaderboard</h1>
-    <table id="leaderboardTable">
-        <tr>
-            <th>Rank</th>
-            <th>Email</th>
-            <th>Score</th>
-        </tr>
-    </table>
-    <br>
-    <button onclick="goHome()">Back</button>
+<h1>🏆 Global Leaderboard</h1>
+<table id="leaderboardTable">
+<tr><th>Rank</th><th>Email</th><th>Time (s)</th></tr>
+</table>
+<br>
+<button onclick="goHome()">Back</button>
 </div>
 
 <script>
-// Global variables
+// ----- FIREBASE CONFIG -----
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT_ID.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+// ----- GAME VARIABLES -----
 let playerEmail = "";
 let startTime;
 let timerInterval;
 let inactivityTimer;
 
-// Leaderboard storage in localStorage
-const LEADERBOARD_KEY = "escapeRoomLeaderboard";
-
-// Helper function to get leaderboard from localStorage
-function getLeaderboard() {
-    const leaderboard = localStorage.getItem(LEADERBOARD_KEY);
-    return leaderboard ? JSON.parse(leaderboard) : [];
-}
-
-// Helper function to save leaderboard to localStorage
-function saveLeaderboard(leaderboard) {
-    localStorage.setItem(LEADERBOARD_KEY, JSON.stringify(leaderboard));
-}
-
-// Start the game
+// ----- START GAME -----
 function beginGame() {
     const emailInput = document.getElementById("loginEmail").value;
-    if (!emailInput) {
-        alert("Enter your email first.");
-        return;
-    }
-
+    if (!emailInput) { alert("Enter your email first."); return; }
     playerEmail = emailInput;
 
     document.getElementById("startPage").classList.add("hidden");
@@ -152,19 +99,18 @@ function beginGame() {
     resetIdleTimer();
 }
 
-// Update timer display
+// ----- TIMER -----
 function updateTimer() {
-    let elapsed = (Date.now() - startTime) / 1000;
-    document.getElementById("timerDisplay").innerText = "Time: " + elapsed.toFixed(2) + "s";
+    const elapsed = (Date.now() - startTime)/1000;
+    document.getElementById("timerDisplay").innerText = "Time: "+elapsed.toFixed(2)+"s";
 }
 
-// Stop the timer and return final time
 function stopTimer() {
     clearInterval(timerInterval);
-    return ((Date.now() - startTime) / 1000).toFixed(2);
+    return ((Date.now()-startTime)/1000).toFixed(2);
 }
 
-// Reset idle timer (30 seconds of inactivity)
+// ----- IDLE WIN -----
 function resetIdleTimer() {
     clearTimeout(inactivityTimer);
     inactivityTimer = setTimeout(winGame, 30000);
@@ -174,76 +120,66 @@ document.addEventListener("mousemove", resetIdleTimer);
 document.addEventListener("keypress", resetIdleTimer);
 document.addEventListener("click", resetIdleTimer);
 
-// Win game (after 30 seconds of inactivity or completing the game)
+// ----- WIN GAME -----
 function winGame() {
-    document.getElementById("passedScreen").style.display = "flex";
-    setTimeout(() => {
-        document.getElementById("passedScreen").style.display = "none";
+    document.getElementById("passedScreen").style.display="flex";
+    setTimeout(()=>{
+        document.getElementById("passedScreen").style.display="none";
         document.getElementById("room1").classList.add("hidden");
         document.getElementById("finishPage").classList.remove("hidden");
 
-        let finalTime = stopTimer();
+        const finalTime = stopTimer();
         window.playerScore = finalTime;
-        document.getElementById("finalTime").innerText = "Your Time: " + finalTime + " seconds";
+        document.getElementById("finalTime").innerText = "Your Time: "+finalTime+" seconds";
     }, 3000);
 }
 
-// Submit score to the leaderboard
-function submitScore() {
-    let leaderboard = getLeaderboard();
-
-    // Add player's score to the leaderboard
-    leaderboard.push({
-        email: playerEmail,
-        score: window.playerScore
-    });
-
-    // Sort leaderboard by score (ascending order)
-    leaderboard.sort((a, b) => parseFloat(a.score) - parseFloat(b.score));
-
-    // Limit to top 10 scores
-    if (leaderboard.length > 10) {
-        leaderboard = leaderboard.slice(0, 10);
-    }
-
-    // Save leaderboard back to localStorage
-    saveLeaderboard(leaderboard);
-
-    // Show success message
-    document.getElementById("submitStatus").innerText = "Score Submitted Successfully!";
+// ----- SECRET CODE -----
+function checkCode(){
+    const code = document.getElementById("secretCode").value.trim().toLowerCase();
+    if(code === "open-sesame"){
+        alert("Secret code found! You win early!");
+        winGame();
+    } else alert("Wrong code...");
 }
 
-// Show the leaderboard
+// ----- SUBMIT SCORE TO FIRESTORE -----
+function submitScore() {
+    db.collection("scores").add({
+        email: playerEmail,
+        score: parseFloat(window.playerScore),
+        created: Date.now()
+    }).then(()=>{
+        document.getElementById("submitStatus").innerText = "Score submitted!";
+        showLeaderboard();
+    }).catch(err=>{
+        document.getElementById("submitStatus").innerText = "Error: "+err;
+    });
+}
+
+// ----- SHOW LEADERBOARD -----
 function showLeaderboard() {
-    document.querySelectorAll(".room").forEach(r => r.classList.add("hidden"));
+    document.querySelectorAll(".room").forEach(r=>r.classList.add("hidden"));
     document.getElementById("leaderboardPage").classList.remove("hidden");
 
-    // Get leaderboard and display it
-    const leaderboard = getLeaderboard();
     const table = document.getElementById("leaderboardTable");
+    table.innerHTML = `<tr><th>Rank</th><th>Email</th><th>Time (s)</th></tr>`;
 
-    // Clear existing leaderboard
-    table.innerHTML = `
-        <tr>
-            <th>Rank</th>
-            <th>Email</th>
-            <th>Score</th>
-        </tr>
-    `;
-
-    // Populate leaderboard table
-    leaderboard.forEach((entry, index) => {
-        let row = table.insertRow();
-        row.insertCell(0).textContent = index + 1;
-        row.insertCell(1).textContent = entry.email;
-        row.insertCell(2).textContent = entry.score;
+    db.collection("scores").orderBy("score").limit(10).get()
+    .then(snapshot => {
+        let rank = 1;
+        snapshot.forEach(doc=>{
+            const data = doc.data();
+            let row = table.insertRow();
+            row.insertCell(0).textContent = rank++;
+            row.insertCell(1).textContent = data.email;
+            row.insertCell(2).textContent = data.score.toFixed(2);
+        });
     });
 }
 
-// Go back to home (reload the game)
-function goHome() {
-    location.reload();
-}
+// ----- GO HOME -----
+function goHome() { location.reload(); }
 </script>
 
 </body>
