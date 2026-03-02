@@ -2,70 +2,120 @@
 <html>
 <head>
 <title>Escape Room</title>
+
+<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <style>
-body { font-family: Arial; background:#111; color:white; text-align:center; margin:0; padding:0; }
-.room { padding:40px; }
+body {
+    font-family: Arial, sans-serif;
+    background-color: #111;
+    color: white;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+}
+.room { padding: 40px; }
 .hidden { display:none; }
 input, button { padding:10px; margin:10px; }
-#passedScreen { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:black; color:lime; font-size:70px; font-weight:bold; justify-content:center; align-items:center; }
-#timerDisplay { font-size:22px; color:cyan; }
 
-/* Leaderboard */
-table { margin:20px auto; border-collapse: collapse; width:60%; color:white; }
-th, td { padding:10px; border:1px solid #fff; }
-th { background:#333; }
+#passedScreen {
+    display:none;
+    position: fixed;
+    top:0; left:0;
+    width:100%; height:100%;
+    background-color:black;
+    color:lime;
+    font-size:70px;
+    font-weight:bold;
+    justify-content:center;
+    align-items:center;
+}
+
+#timerDisplay{
+    font-size:22px;
+    color:cyan;
+}
+
+/* Leaderboard Styles */
+table {
+    margin: 20px auto;
+    border-collapse: collapse;
+    width: 50%;
+    color: white;
+}
+th, td {
+    padding: 10px;
+    border: 1px solid #fff;
+}
+th {
+    background-color: #333;
+}
 </style>
 </head>
+
 <body>
 
 <!-- START PAGE -->
 <div id="startPage" class="room">
-<h1>Escape Room Challenge</h1>
-<p>Enter your email to begin:</p>
-<input type="email" id="loginEmail" placeholder="Your Email">
-<br>
-<button onclick="beginGame()">START GAME</button>
-<br><br>
-<button onclick="showLeaderboard()">View Leaderboard</button>
+    <h1>Escape Room Challenge</h1>
+    <p>Enter your email to begin:</p>
+    <input type="email" id="loginEmail" placeholder="Your Email">
+    <br>
+    <button onclick="beginGame()">START GAME</button>
+    <br><br>
+    <button onclick="showLeaderboard()">View Leaderboard</button>
 </div>
 
 <div id="timerDisplay" class="hidden">Time: 0.00s</div>
 
 <!-- ROOM 1 -->
 <div id="room1" class="room hidden">
-<h1>Escape Room - Room 1</h1>
-<p>Click anything…</p>
-<a href="https://www.bing.com/videos/riverview/relatedvideo?q=rick+aslty+never" target="_blank">Click Me I Dare You</a>
-<p>Enter the secret code:</p>
-<input type="text" id="secretCode" placeholder="Type something...">
-<p><button onclick="alert('If the answer is what you seek you must mute and find peace')">Strange Button</button></p>
+    <h1>Escape Room - Room 1</h1>
+    <p>There are many things you can click...</p>
+
+    <a href="https://www.bing.com/videos/riverview/relatedvideo?q=rick+aslty+never" target="_blank">
+        Click Me I Dare You
+    </a>
+
+    <p>Enter the secret code:</p>
+    <input type="text" id="secretCode" placeholder="Type something...">
+
+    <p>
+    <button onclick="alert('if the answer is what you seek you must mute and find peace')">
+        Strange Button
+    </button>
+    </p>
 </div>
 
 <div id="passedScreen">YOU PASSED</div>
 
 <!-- FINISH PAGE -->
 <div id="finishPage" class="room hidden">
-<h1>YOU ESCAPED</h1>
-<h2 id="finalTime"></h2>
-<button onclick="submitScore()">Submit Score</button>
-<p id="submitStatus"></p>
+    <h1>YOU ESCAPED</h1>
+    <h2 id="finalTime"></h2>
+    <button onclick="submitScore()">Submit Score</button>
+    <p id="submitStatus"></p>
 </div>
 
 <!-- LEADERBOARD PAGE -->
 <div id="leaderboardPage" class="room hidden">
-<h1>🏆 Global Leaderboard</h1>
-<table id="leaderboardTable">
-<tr><th>Rank</th><th>Email</th><th>Time (s)</th></tr>
-</table>
-<br>
-<button onclick="goHome()">Back</button>
+    <h1>🏆 Global Leaderboard</h1>
+    <table id="leaderboardTable">
+        <tr>
+            <th>Rank</th>
+            <th>Email</th>
+            <th>Time (s)</th>
+        </tr>
+    </table>
+    <br>
+    <button onclick="goHome()">Back</button>
 </div>
 
 <script>
 // ----- FIREBASE CONFIG -----
+// Replace these with your Firebase Web App config
 const firebaseConfig = {
   apiKey: "YOUR_API_KEY",
   authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
