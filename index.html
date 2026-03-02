@@ -99,9 +99,7 @@ th {
 <div id="room2" class="room hidden">
     <h1>Escape Room - Room 2</h1>
     <p>Whats the code?</p>
-
-    <!-- Add a finish button to stop timer and show finish -->
-    <button onclick="finishGame()">Finish Game</button>
+    <!-- No finish button -->
 </div>
 
 <!-- FINISH PAGE -->
@@ -131,7 +129,6 @@ th {
 let playerEmail = "";
 let startTime;
 let timerInterval;
-let inactivityTimer;
 
 // Leaderboard storage in localStorage
 const LEADERBOARD_KEY = "escapeRoomLeaderboard";
@@ -163,8 +160,6 @@ function beginGame() {
 
     startTime = Date.now();
     timerInterval = setInterval(updateTimer, 10);
-
-    resetIdleTimer();
 }
 
 // Update timer display
@@ -180,17 +175,7 @@ function stopTimer() {
     return ((Date.now() - startTime) / 1000).toFixed(2);
 }
 
-// Reset idle timer (30 seconds of inactivity)
-function resetIdleTimer() {
-    clearTimeout(inactivityTimer);
-    inactivityTimer = setTimeout(winGame, 30000);
-}
-
-document.addEventListener("mousemove", resetIdleTimer);
-document.addEventListener("keypress", resetIdleTimer);
-document.addEventListener("click", resetIdleTimer);
-
-// Win game and go to Room 2 (keep timer running)
+// Win game and go to Room 2
 function winGame() {
     document.getElementById("passedScreen").style.display = "flex";
 
@@ -198,19 +183,7 @@ function winGame() {
         document.getElementById("room2").classList.remove("hidden");
         document.getElementById("passedScreen").style.display = "none";
         document.getElementById("room1").classList.add("hidden");
-        // Timer keeps running here (do not stop it)
     }, 3000);
-}
-
-// Finish game, stop timer, and show finish page
-function finishGame() {
-    let finalTime = stopTimer();
-    window.playerScore = finalTime;
-    document.getElementById("finalTime").innerText =
-        "Your Time: " + finalTime + " seconds";
-
-    document.getElementById("room2").classList.add("hidden");
-    document.getElementById("finishPage").classList.remove("hidden");
 }
 
 // Submit score
@@ -219,7 +192,7 @@ function submitScore() {
 
     leaderboard.push({
         email: playerEmail,
-        score: window.playerScore
+        score: stopTimer()
     });
 
     leaderboard.sort((a, b) =>
