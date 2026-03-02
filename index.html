@@ -3,56 +3,15 @@
 <head>
 <title>Genius Hour</title>
 
-<script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js"></script>
 
 <style>
-body {
-    font-family: Arial, sans-serif;
-    background-color: #111;
-    color: white;
-    text-align: center;
-    margin: 0;
-    padding: 0;
-}
-.room { padding: 40px; }
-.hidden { display:none; }
-input, button { padding:10px; margin:10px; }
-
-#passedScreen {
-    display:none;
-    position: fixed;
-    top:0; left:0;
-    width:100%; height:100%;
-    background-color:black;
-    color:lime;
-    font-size:70px;
-    font-weight:bold;
-    justify-content:center;
-    align-items:center;
-}
-
-#timerDisplay{
-    font-size:22px;
-    color:cyan;
-}
-
-/* Leaderboard Styles */
-table {
-    margin: 20px auto;
-    border-collapse: collapse;
-    width: 50%;
-    color: white;
-}
-th, td {
-    padding: 10px;
-    border: 1px solid #fff;
-}
-th {
-    background-color: #333;
-}
+/* Your CSS code here */
 </style>
-</head>
 
+</head>
 <body>
 
 <!-- START PAGE -->
@@ -72,22 +31,8 @@ th {
 <div id="room1" class="room hidden">
     <h1>Escape Room - Room 1</h1>
     <p>There are many things you can click...</p>
-
-    <a href="https://www.youtube.com/watch?v=Dwnui-3-o-4b" target="_blank">
-       If u are bored click this
-    </a>
-    
-  <a href="https://www.youtube.com/watch?v=UG9BG7oEk7s" target="_blank">
-        This is a self advertisement
-  </a>
     <p>Enter the secret code:</p>
     <input type="text" placeholder="Type something...">
-
-    <p>
-    <button onclick="alert('if the answer is what you seek you must mute and find peace')">
-        If you click this button isaac will give you a kiss 
-    </button>
-    </p>
 </div>
 
 <div id="passedScreen">YOU PASSED</div>
@@ -115,25 +60,23 @@ th {
 </div>
 
 <script>
+// Firebase setup
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_AUTH_DOMAIN",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_STORAGE_BUCKET",
+  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+const app = firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
 // Global variables
 let playerEmail = "";
 let startTime;
 let timerInterval;
 let inactivityTimer;
-
-// Leaderboard storage in localStorage
-const LEADERBOARD_KEY = "escapeRoomLeaderboard";
-
-// Helper function to get leaderboard from localStorage
-function getLeaderboard() {
-    const leaderboard = localStorage.getItem(LEADERBOARD_KEY);
-    return leaderboard ? JSON.parse(leaderboard) : [];
-}
-
-// Helper function to save leaderboard to localStorage
-function saveLeaderboard(leaderboard) {
-    localStorage.setItem(LEADERBOARD_KEY, JSON.stringify(leaderboard));
-}
 
 // Start the game
 function beginGame() {
@@ -191,56 +134,53 @@ function winGame() {
     }, 3000);
 }
 
-// Submit score to the leaderboard
+// Submit score to the global leaderboard (Firebase Firestore)
 function submitScore() {
-    let leaderboard = getLeaderboard();
-
-    // Add player's score to the leaderboard
-    leaderboard.push({
+    const leaderboardRef = db.collection("leaderboard");
+    
+    leaderboardRef.add({
         email: playerEmail,
         score: window.playerScore
+    })
+    .then(() => {
+        document.getElementById("submitStatus").innerText = "Score Submitted Successfully!";
+    })
+    .catch((error) => {
+        document.getElementById("submitStatus").innerText = "Error submitting score: " + error.message;
     });
-
-    // Sort leaderboard by score (ascending order)
-    leaderboard.sort((a, b) => parseFloat(a.score) - parseFloat(b.score));
-
-    // Limit to top 10 scores
-    if (leaderboard.length > 10) {
-        leaderboard = leaderboard.slice(0, 10);
-    }
-
-    // Save leaderboard back to localStorage
-    saveLeaderboard(leaderboard);
-
-    // Show success message
-    document.getElementById("submitStatus").innerText = "Score Submitted Successfully!";
 }
 
-// Show the leaderboard
+// Show the global leaderboard
 function showLeaderboard() {
     document.querySelectorAll(".room").forEach(r => r.classList.add("hidden"));
     document.getElementById("leaderboardPage").classList.remove("hidden");
 
-    // Get leaderboard and display it
-    const leaderboard = getLeaderboard();
-    const table = document.getElementById("leaderboardTable");
+    // Get leaderboard from Firebase
+    db.collection("leaderboard")
+        .orderBy("score")
+        .limit(10)
+        .get()
+        .then((querySnapshot) => {
+            const leaderboard = querySnapshot.docs.map(doc => doc.data());
+            const table = document.getElementById("leaderboardTable");
+            table.innerHTML = `
+                <tr>
+                    <th>Rank</th>
+                    <th>Email</th>
+                    <th>Score</th>
+                </tr>
+            `;
 
-    // Clear existing leaderboard
-    table.innerHTML = `
-        <tr>
-            <th>Rank</th>
-            <th>Email</th>
-            <th>Score</th>
-        </tr>
-    `;
-
-    // Populate leaderboard table
-    leaderboard.forEach((entry, index) => {
-        let row = table.insertRow();
-        row.insertCell(0).textContent = index + 1;
-        row.insertCell(1).textContent = entry.email;
-        row.insertCell(2).textContent = entry.score;
-    });
+            leaderboard.forEach((entry, index) => {
+                let row = table.insertRow();
+                row.insertCell(0).textContent = index + 1;
+                row.insertCell(1).textContent = entry.email;
+                row.insertCell(2).textContent = entry.score;
+            });
+        })
+        .catch((error) => {
+            console.error("Error fetching leaderboard:", error);
+        });
 }
 
 // Go back to home (reload the game)
