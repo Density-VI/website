@@ -129,6 +129,7 @@ th {
 let playerEmail = "";
 let startTime;
 let timerInterval;
+let inactivityTimer;
 
 // Leaderboard storage in localStorage
 const LEADERBOARD_KEY = "escapeRoomLeaderboard";
@@ -160,6 +161,8 @@ function beginGame() {
 
     startTime = Date.now();
     timerInterval = setInterval(updateTimer, 10);
+
+    resetIdleTimerRoom1(); // Start inactivity timer for Room 1
 }
 
 // Update timer display
@@ -175,6 +178,12 @@ function stopTimer() {
     return ((Date.now() - startTime) / 1000).toFixed(2);
 }
 
+// Reset idle timer (30 seconds of inactivity) for Room 1
+function resetIdleTimerRoom1() {
+    clearTimeout(inactivityTimer);
+    inactivityTimer = setTimeout(winGame, 30000);  // Finish Room 1 after 30 seconds
+}
+
 // Win game and go to Room 2
 function winGame() {
     document.getElementById("passedScreen").style.display = "flex";
@@ -183,6 +192,7 @@ function winGame() {
         document.getElementById("room2").classList.remove("hidden");
         document.getElementById("passedScreen").style.display = "none";
         document.getElementById("room1").classList.add("hidden");
+        // Timer continues running in Room 2, no inactivity timeout here
     }, 3000);
 }
 
