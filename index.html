@@ -18,7 +18,7 @@ body {
 }
 .room { padding: 40px; }
 .hidden { display:none; }
-input, button { padding:10px; margin:10px; }
+input, button { padding:10px; margin:10px; cursor: pointer; }
 
 #passedScreen {
     display:none;
@@ -63,9 +63,9 @@ th {
     <p>Enter your email to begin:</p>
     <input type="email" id="loginEmail" placeholder="Your Email">
     <br>
-    <button onclick="beginGame()">START GAME</button>
+    <button id="startBtn" onclick="beginGame()">START GAME</button>
     <br><br>
-    <button onclick="showLeaderboard()">View Leaderboard</button>
+    <button id="leaderboardBtn" onclick="showLeaderboard()">View Leaderboard</button>
 </div>
 
 <div id="timerDisplay" class="hidden">Time: 0.00s</div>
@@ -233,4 +233,15 @@ function showLeaderboard() {
             const data = doc.data();
             let row = table.insertRow();
             row.insertCell(0).textContent = rank++;
-           
+            row.insertCell(1).textContent = data.email;
+            row.insertCell(2).textContent = data.score.toFixed(2);
+        });
+    });
+}
+
+// ----- GO HOME -----
+function goHome() { location.reload(); }
+</script>
+
+</body>
+</html>
