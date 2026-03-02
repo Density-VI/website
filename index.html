@@ -95,6 +95,15 @@ th {
 
 <div id="passedScreen">YOU PASSED</div>
 
+<!-- ROOM 2 -->
+<div id="room2" class="room hidden">
+    <h1>Escape Room - Room 2</h1>
+    <p>Whats the code?</p>
+
+    <!-- Add a finish button to stop timer and show finish -->
+    <button onclick="finishGame()">Finish Game</button>
+</div>
+
 <!-- FINISH PAGE -->
 <div id="finishPage" class="room hidden">
     <h1>YOU ESCAPED</h1>
@@ -181,20 +190,27 @@ document.addEventListener("mousemove", resetIdleTimer);
 document.addEventListener("keypress", resetIdleTimer);
 document.addEventListener("click", resetIdleTimer);
 
-// Win game
+// Win game and go to Room 2 (keep timer running)
 function winGame() {
     document.getElementById("passedScreen").style.display = "flex";
 
     setTimeout(() => {
+        document.getElementById("room2").classList.remove("hidden");
         document.getElementById("passedScreen").style.display = "none";
         document.getElementById("room1").classList.add("hidden");
-        document.getElementById("finishPage").classList.remove("hidden");
-
-        let finalTime = stopTimer();
-        window.playerScore = finalTime;
-        document.getElementById("finalTime").innerText =
-            "Your Time: " + finalTime + " seconds";
+        // Timer keeps running here (do not stop it)
     }, 3000);
+}
+
+// Finish game, stop timer, and show finish page
+function finishGame() {
+    let finalTime = stopTimer();
+    window.playerScore = finalTime;
+    document.getElementById("finalTime").innerText =
+        "Your Time: " + finalTime + " seconds";
+
+    document.getElementById("room2").classList.add("hidden");
+    document.getElementById("finishPage").classList.remove("hidden");
 }
 
 // Submit score
