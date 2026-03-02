@@ -94,33 +94,33 @@ th {
 </div>
 
 <div id="passedScreen">YOU PASSED</div>
+    <div id="passedScreen">Next level!</div>
 
-<!-- ROOM 2 -->
+        <!-- ROOM 2 -->
 <div id="room2" class="room hidden">
     <h1>Escape Room - Room 2</h1>
     <p>Whats the code?</p>
-    <!-- No finish button -->
-</div>
-<h2>Type the secret word to continue:</h2>
 
-<input type="text" id="answerBox" placeholder="Enter password">
-<button onclick="checkAnswer()">Submit</button>
+    <h2>Type the secret word to continue:</h2>
 
-<p id="message"></p>
+    <input type="text" id="answerBox" placeholder="Enter password">
+    <button onclick="checkAnswer()">Submit</button>
 
-<script>
-function checkAnswer() {
-var userInput = document.getElementById("answerBox").value;
-var correctAnswer = "password";
+    <p id="message"></p>
 
-if (userInput === correctAnswer) {
-document.getElementById("message").innerHTML = "Access Granted!";
-window.location.href = "finishPage"; // Redirects if correct
-} else {
-document.getElementById("message").innerHTML = "Wrong answer. Try again!";
-}
-}
-</script>
+    <script>
+    function checkAnswer() {
+        var userInput = document.getElementById("answerBox").value;
+        var correctAnswer = "password";
+
+        if (userInput === correctAnswer) {
+            document.getElementById("message").innerHTML = "Access Granted!";
+            window.location.href = "nextpage.html"; // Redirects if correct
+        } else {
+            document.getElementById("message").innerHTML = "Wrong answer. Try again!";
+        }
+    }
+    </script>
 
 <!-- FINISH PAGE -->
 <div id="finishPage" class="room hidden">
@@ -222,7 +222,7 @@ function submitScore() {
 
     leaderboard.push({
         email: playerEmail,
-        score: stopTimer()
+        score: window.playerScore
     });
 
     leaderboard.sort((a, b) =>
@@ -274,4 +274,3 @@ function goHome() {
 
 </body>
 </html>
-
