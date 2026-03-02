@@ -6,12 +6,113 @@
 <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
 
 <style>
-    /* Your CSS styles */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #111;
+    color: white;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+}
+.room { padding: 40px; }
+.hidden { display:none; }
+input, button { padding:10px; margin:10px; }
+
+#passedScreen {
+    display:none;
+    position: fixed;
+    top:0; left:0;
+    width:100%; height:100%;
+    background-color:black;
+    color:lime;
+    font-size:70px;
+    font-weight:bold;
+    justify-content:center;
+    align-items:center;
+}
+
+#timerDisplay{
+    font-size:22px;
+    color:cyan;
+}
+
+/* Leaderboard Styles */
+table {
+    margin: 20px auto;
+    border-collapse: collapse;
+    width: 50%;
+    color: white;
+}
+th, td {
+    padding: 10px;
+    border: 1px solid #fff;
+}
+th {
+    background-color: #333;
+}
 </style>
 </head>
 
 <body>
-<!-- Your existing HTML structure here -->
+
+<!-- START PAGE -->
+<div id="startPage" class="room">
+    <h1>Escape Room Challenge</h1>
+    <p>Enter your username to begin:</p>
+    <input type="text" id="loginEmail" placeholder="Your username">
+    <br>
+    <button id="startGameButton">START GAME</button>
+    <br><br>
+    <button id="leaderboardButton">View Leaderboard</button>
+</div>
+
+<div id="timerDisplay" class="hidden">Time: 0.00s</div>
+
+<!-- ROOM 1 -->
+<div id="room1" class="room hidden">
+    <h1>Escape Room - Room 1</h1>
+    <p>There are many things you can click...</p>
+
+    <a href="https://www.youtube.com/watch?v=Dwnui-3-o-4b" target="_blank">
+       If u are bored click this
+    </a>
+    
+  <a href="https://www.youtube.com/watch?v=UG9BG7oEk7s" target="_blank">
+        This is a self advertisement
+  </a>
+    <p>Enter the secret code:</p>
+    <input type="text" placeholder="Type something...">
+
+    <p>
+    <button onclick="alert('if the answer is what you seek you must mute and find peace')">
+        If you click this button isaac will give you a kiss 
+    </button>
+    </p>
+</div>
+
+<div id="passedScreen">YOU PASSED</div>
+
+<!-- FINISH PAGE -->
+<div id="finishPage" class="room hidden">
+    <h1>YOU ESCAPED</h1>
+    <h2 id="finalTime"></h2>
+    <button id="submitScoreButton">Submit Score</button>
+    <p id="submitStatus"></p>
+</div>
+
+<!-- LEADERBOARD PAGE -->
+<div id="leaderboardPage" class="room hidden">
+    <h1>🏆 Global Leaderboard</h1>
+    <table id="leaderboardTable">
+        <tr>
+            <th>Rank</th>
+            <th>Email</th>
+            <th>Score</th>
+        </tr>
+    </table>
+    <br>
+    <button id="backButton">Back</button>
+</div>
 
 <script>
 // Global variables
@@ -65,6 +166,16 @@ function stopTimer() {
     clearInterval(timerInterval);
     return ((Date.now() - startTime) / 1000).toFixed(2);
 }
+
+// Reset idle timer (30 seconds of inactivity)
+function resetIdleTimer() {
+    clearTimeout(inactivityTimer);
+    inactivityTimer = setTimeout(winGame, 30000);
+}
+
+document.addEventListener("mousemove", resetIdleTimer);
+document.addEventListener("keypress", resetIdleTimer);
+document.addEventListener("click", resetIdleTimer);
 
 // Win game (after 30 seconds of inactivity or completing the game)
 function winGame() {
@@ -136,6 +247,13 @@ function showLeaderboard() {
 function goHome() {
     location.reload();
 }
+
+// Event listeners for buttons
+document.getElementById("startGameButton").addEventListener("click", beginGame);
+document.getElementById("leaderboardButton").addEventListener("click", showLeaderboard);
+document.getElementById("submitScoreButton").addEventListener("click", submitScore);
+document.getElementById("backButton").addEventListener("click", goHome);
+
 </script>
 
 </body>
