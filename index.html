@@ -101,6 +101,26 @@ th {
     <p>Whats the code?</p>
     <!-- No finish button -->
 </div>
+<h2>Type the secret word to continue:</h2>
+
+<input type="text" id="answerBox" placeholder="Enter password">
+<button onclick="checkAnswer()">Submit</button>
+
+<p id="message"></p>
+
+<script>
+function checkAnswer() {
+var userInput = document.getElementById("answerBox").value;
+var correctAnswer = "password";
+
+if (userInput === correctAnswer) {
+document.getElementById("message").innerHTML = "Access Granted!";
+window.location.href = "finishPage"; // Redirects if correct
+} else {
+document.getElementById("message").innerHTML = "Wrong answer. Try again!";
+}
+}
+</script>
 
 <!-- FINISH PAGE -->
 <div id="finishPage" class="room hidden">
@@ -254,3 +274,4 @@ function goHome() {
 
 </body>
 </html>
+
