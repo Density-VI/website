@@ -6,6 +6,26 @@
 <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
 
 <style>
+    /* Flash + Shake Effect */
+@keyframes flashRed {
+  0% { background-color: #111; }
+  25% { background-color: red; }
+  50% { background-color: #111; }
+  75% { background-color: red; }
+  100% { background-color: #111; }
+}
+
+@keyframes shake {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(-10px); }
+  50% { transform: translateX(10px); }
+  75% { transform: translateX(-10px); }
+  100% { transform: translateX(0); }
+}
+
+.escapePunish {
+  animation: flashRed 0.6s ease-in-out 2, shake 0.4s ease-in-out 2;
+}
 body {
     font-family: Arial, sans-serif;
     background-color: #111;
@@ -444,10 +464,30 @@ function resetLeaderboard() {
 function goHome() {
     location.reload();
 }
+// ESC key trap at final choice
+document.addEventListener("keydown", function(event) {
+    if (event.key === "Escape") {
+
+        const finalChoiceVisible =
+            !document.getElementById("bossFinalChoice").classList.contains("hidden");
+
+        if (finalChoiceVisible) {
+
+            // Add dramatic effect
+            document.body.classList.add("escapePunish");
+
+            setTimeout(function() {
+                alert("You cannot escape.");
+                location.reload(); // full restart
+            }, 1000);
+        }
+    }
+});
 </script>
 
 </body>
 </html>
+
 
 
 
