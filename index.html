@@ -408,11 +408,10 @@ function checkBossCode() {
 }
 
 function wrongChoice() {
-    showRoom('room1');
-    setTimeout(() => {
-        alert("You cannot escape what you have become...");
-    }, 200);
-}
+ alert("You cannot escape what you have become...");}
+    {document.getElementById("room1").classList.remove("hidden");
+    }
+    
 
 function correctChoice() {
     let finalTime = stopTimer();
@@ -487,6 +486,7 @@ document.addEventListener("keydown", function(event) {
 
 </body>
 </html>
+
 
 
 
