@@ -50,7 +50,8 @@ th, td {
     border: 1px solid #fff;
 }
 th { background-color: #333; }
-     /* Flash + Shake Effect */
+
+/* Flash + Shake Effect */
 @keyframes flashRed {
   0% { background-color: #111; }
   25% { background-color: red; }
@@ -223,7 +224,6 @@ blocks.forEach(block => {
   });
 });
 
-// ✅ Updated checkWin: goes to Room 4 automatically
 function checkWin() {
   if (completed === blocks.length) {
     setTimeout(() => {
@@ -407,12 +407,10 @@ function checkBossCode() {
     }
 }
 
-
-function wrongChoice() { alert("You cannot escape what you have become..."); 
-loction.reload();
+function wrongChoice() { 
+    alert("You cannot escape what you have become..."); 
+    location.reload();
 }
-
-
 
 function correctChoice() {
     let finalTime = stopTimer();
@@ -464,7 +462,8 @@ function resetLeaderboard() {
 function goHome() {
     location.reload();
 }
-// ESC key trap at final choice
+
+// 🔥 ESC Trap for Final Boss
 document.addEventListener("keydown", function(event) {
     if (event.key === "Escape") {
 
@@ -472,11 +471,10 @@ document.addEventListener("keydown", function(event) {
             !document.getElementById("bossFinalChoice").classList.contains("hidden");
 
         if (finalChoiceVisible) {
-
-            // Add dramatic effect
             document.body.classList.add("escapePunish");
 
             setTimeout(function() {
+                document.body.classList.remove("escapePunish");
                 alert("You cannot escape.");
                 location.reload(); // full restart
             }, 1000);
@@ -487,19 +485,3 @@ document.addEventListener("keydown", function(event) {
 
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
