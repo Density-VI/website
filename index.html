@@ -408,9 +408,16 @@ function checkBossCode() {
 }
 
 function wrongChoice() {
- alert("You cannot escape what you have become...");}
-    {document.getElementById("room1").classList.remove("hidden");
-    }
+    alert("You cannot escape what you have become...");
+
+    // Hide all rooms first
+    document.querySelectorAll(".room").forEach(room => {
+        room.classList.add("hidden");
+    });
+
+    // Then show Room 1
+    document.getElementById("room1").classList.remove("hidden");
+}
     
 
 function correctChoice() {
@@ -486,6 +493,7 @@ document.addEventListener("keydown", function(event) {
 
 </body>
 </html>
+
 
 
 
