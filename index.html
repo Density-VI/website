@@ -130,13 +130,16 @@ th { background-color: #333; }
 <!-- ROOM 3 -->
 <div id="room3" class="room hidden">
     <h1>Escape Room 3</h1>
+    <h2>Figure it out you're smart enough</h2>
 
 <style>
+.hidden { display: none; }
+
 /* Game box */
 #game {
   position: relative;
   width: 700px;
-  height: 400px;
+  height: 450px;
   border: 3px black;
   margin-top: 20px;
 }
@@ -145,7 +148,7 @@ th { background-color: #333; }
 .target {
   width: 80px;
   height: 80px;
-  border: 3px dashed gray;
+  border: 3px dashed dark gray;
   position: absolute;
 }
 
@@ -157,9 +160,15 @@ th { background-color: #333; }
   cursor: grab;
   border-radius: 10px;
 }
-</style>
 
-<h2> Figure it out your smart enough</h2>
+/* Submit button */
+#submitBtn {
+  margin-top: 20px;
+  padding: 10px 20px;
+  font-size: 18px;
+  cursor: pointer;
+}
+</style>
 
 <div id="game">
   <!-- Targets -->
@@ -169,15 +178,27 @@ th { background-color: #333; }
   <div class="target" data-color="purple" style="left:500px; top:350px;"></div>
 
   <!-- Blocks -->
-  <div class="block" data-color="red" style="background:red; left:50px; top:60px;"></div>
-  <div class="block" data-color="blue" style="background:blue; left:150px; top:200px;"></div>
-  <div class="block" data-color="green" style="background:green; left:80px; top:320px;"></div>
-  <div class="block" data-color="purple" style="background:purple; left:200px; top:120px;"></div>
+  <div class="block" data-color="red" style="background:Black; left:50px; top:60px;"></div>
+  <div class="block" data-color="blue" style="background:Black; left:150px; top:200px;"></div>
+  <div class="block" data-color="green" style="background:Black; left:80px; top:320px;"></div>
+  <div class="block" data-color="purple" style="background:Black; left:200px; top:120px;"></div>
 </div>
 
+<button id="submitBtn" class="hidden">Submit</button>
+
 <script>
+// ROOM SWITCHING FUNCTION (Make sure you have other rooms built)
+function goToRoom(roomId) {
+  document.querySelectorAll(".room").forEach(room => {
+    room.classList.add("hidden");
+  });
+  document.getElementById(roomId).classList.remove("hidden");
+}
+
 const blocks = document.querySelectorAll("#room3 .block");
 const targets = document.querySelectorAll("#room3 .target");
+const submitBtn = document.getElementById("submitBtn");
+
 let completed = 0;
 
 blocks.forEach(block => {
@@ -226,12 +247,14 @@ blocks.forEach(block => {
 
 function checkWin() {
   if (completed === blocks.length) {
-    setTimeout(() => {
-      alert("🔥 You Beat Hard Mode!");
-      goToRoom("room4"); 
-    }, 200);
+    submitBtn.classList.remove("hidden");
   }
 }
+
+submitBtn.addEventListener("click", () => {
+  alert("🔥 You Beat Hard Mode!");
+  goToRoom("room4"); // Make sure room4 exists
+});
 </script>
 </div>
 
@@ -493,6 +516,7 @@ document.addEventListener("keydown", function(event) {
 
 </body>
 </html>
+
 
 
 
