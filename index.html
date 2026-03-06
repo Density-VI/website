@@ -147,7 +147,7 @@ th { background-color: #333; }
 .target {
   width: 80px;
   height: 80px;
-  border: 3px dashed gray;
+  border: 3px dashed yellow;
   position: absolute;
 }
 
@@ -199,22 +199,19 @@ let completed = 0;
 
 const possiblePositions = [
 
-const positions = [
-  {x: 20, y: 20}, {x: 100, y: 30}, {x: 200, y: 40}, {x: 300, y: 60}, {x: 400, y: 20},
-  {x: 500, y: 70}, {x: 600, y: 50}, {x: 700, y: 30}, {x: 800, y: 80}, {x: 900, y: 60},
+function moveTarget() {
+    const game = document.getElementById("game");
+    const target = document.getElementById("target");
 
-  {x: 50, y: 120}, {x: 150, y: 140}, {x: 250, y: 160}, {x: 350, y: 120}, {x: 450, y: 150},
-  {x: 550, y: 170}, {x: 650, y: 140}, {x: 750, y: 130}, {x: 850, y: 160}, {x: 950, y: 150},
+    const maxX = game.clientWidth - target.offsetWidth;
+    const maxY = game.clientHeight - target.offsetHeight;
 
-  {x: 30, y: 220}, {x: 130, y: 240}, {x: 230, y: 260}, {x: 330, y: 230}, {x: 430, y: 250},
-  {x: 530, y: 270}, {x: 630, y: 240}, {x: 730, y: 230}, {x: 830, y: 260}, {x: 930, y: 250},
+    const randomX = Math.random() * maxX;
+    const randomY = Math.random() * maxY;
 
-  {x: 40, y: 320}, {x: 140, y: 340}, {x: 240, y: 360}, {x: 340, y: 330}, {x: 440, y: 350},
-  {x: 540, y: 370}, {x: 640, y: 340}, {x: 740, y: 330}, {x: 840, y: 360}, {x: 940, y: 350},
-
-  {x: 60, y: 420}, {x: 160, y: 440}, {x: 260, y: 460}, {x: 360, y: 430}, {x: 460, y: 450},
-  {x: 560, y: 470}, {x: 660, y: 440}, {x: 760, y: 430}, {x: 860, y: 460}, {x: 960, y: 450}
-];
+    target.style.left = randomX + "px";
+    target.style.top = randomY + "px";
+}
     
 function shuffle(array){
  return array.sort(()=>Math.random()-0.5);
@@ -569,6 +566,7 @@ document.addEventListener("keydown", function(event) {
 
 </body>
 </html>
+
 
 
 
