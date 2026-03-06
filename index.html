@@ -126,21 +126,20 @@ th { background-color: #333; }
     <button onclick="checkAnswer()">Submit</button>
     <p id="message"></p>
 </div>
-
 <!-- ROOM 3 -->
 <div id="room3" class="room hidden">
     <h1>Escape Room 3</h1>
     <h2>Figure it out you're smart enough</h2>
 
 <style>
-.hidden { display: none; }
+.hidden { display:none; }
 
 /* Game box */
 #game {
   position: relative;
   width: 700px;
   height: 450px;
-  border: 3px black;
+  border: 3px solid black;
   margin-top: 20px;
 }
 
@@ -148,7 +147,7 @@ th { background-color: #333; }
 .target {
   width: 80px;
   height: 80px;
-  border: 3px dashed dark gray;
+  border: 3px dashed gray;
   position: absolute;
 }
 
@@ -171,29 +170,24 @@ th { background-color: #333; }
 </style>
 
 <div id="game">
+
   <!-- Targets -->
-  <div class="target" data-color="red" style="left:500px; top:50px;"></div>
-  <div class="target" data-color="blue" style="left:500px; top:150px;"></div>
-  <div class="target" data-color="green" style="left:500px; top:250px;"></div>
-  <div class="target" data-color="purple" style="left:500px; top:350px;"></div>
+  <div class="target" data-color="red"></div>
+  <div class="target" data-color="blue"></div>
+  <div class="target" data-color="green"></div>
+  <div class="target" data-color="purple"></div>
 
   <!-- Blocks -->
-  <div class="block" data-color="red" style="background:Black; left:50px; top:60px;"></div>
-  <div class="block" data-color="blue" style="background:Black; left:150px; top:200px;"></div>
-  <div class="block" data-color="green" style="background:Black; left:80px; top:320px;"></div>
-  <div class="block" data-color="purple" style="background:Black; left:200px; top:120px;"></div>
+  <div class="block" data-color="red" style="background:red; left:50px; top:60px;"></div>
+  <div class="block" data-color="blue" style="background:blue; left:150px; top:200px;"></div>
+  <div class="block" data-color="green" style="background:green; left:80px; top:320px;"></div>
+  <div class="block" data-color="purple" style="background:purple; left:200px; top:120px;"></div>
+
 </div>
 
 <button id="submitBtn" class="hidden">Submit</button>
 
 <script>
-// ROOM SWITCHING FUNCTION (Make sure you have other rooms built)
-function goToRoom(roomId) {
-  document.querySelectorAll(".room").forEach(room => {
-    room.classList.add("hidden");
-  });
-  document.getElementById(roomId).classList.remove("hidden");
-}
 
 const blocks = document.querySelectorAll("#room3 .block");
 const targets = document.querySelectorAll("#room3 .target");
@@ -201,61 +195,112 @@ const submitBtn = document.getElementById("submitBtn");
 
 let completed = 0;
 
-blocks.forEach(block => {
-  let isDragging = false;
-  let offsetX, offsetY;
+/* RANDOM TARGET POSITIONS */
 
-  block.addEventListener("mousedown", (e) => {
-    if (block.dataset.locked === "true") return;
-    isDragging = true;
-    offsetX = e.clientX - block.offsetLeft;
-    offsetY = e.clientY - block.offsetTop;
-  });
+const possiblePositions = [
+ {x:500,y:50},
+ {x:500,y:150},
+ {x:500,y:250},
+ {x:500,y:350},
+ {x:350,y:80},
+ {x:420,y:200},
+ {x:450,y:300},
+ {x:320,y:150}
+];
 
-  document.addEventListener("mousemove", (e) => {
-    if (!isDragging) return;
-    block.style.left = (e.clientX - offsetX) + "px";
-    block.style.top = (e.clientY - offsetY) + "px";
-  });
-
-  document.addEventListener("mouseup", () => {
-    if (!isDragging) return;
-    isDragging = false;
-
-    targets.forEach(target => {
-      const rect1 = block.getBoundingClientRect();
-      const rect2 = target.getBoundingClientRect();
-
-      const overlap = !(
-        rect1.right < rect2.left ||
-        rect1.left > rect2.right ||
-        rect1.bottom < rect2.top ||
-        rect1.top > rect2.bottom
-      );
-
-      if (overlap && block.dataset.color === target.dataset.color) {
-        block.style.left = target.style.left;
-        block.style.top = target.style.top;
-        block.dataset.locked = "true";
-        block.style.cursor = "default";
-        completed++;
-        checkWin();
-      }
-    });
-  });
-});
-
-function checkWin() {
-  if (completed === blocks.length) {
-    submitBtn.classList.remove("hidden");
-  }
+function shuffle(array){
+ return array.sort(()=>Math.random()-0.5);
 }
 
-submitBtn.addEventListener("click", () => {
-  alert("🔥 You Beat Hard Mode!");
-  goToRoom("room4"); // Make sure room4 exists
+function randomizeTargets(){
+ const shuffled = shuffle([...possiblePositions]);
+
+ targets.forEach((target,index)=>{
+   const pos = shuffled[index];
+   target.style.left = pos.x + "px";
+   target.style.top = pos.y + "px";
+ });
+}
+
+randomizeTargets();
+
+/* DRAG SYSTEM */
+
+blocks.forEach(block => {
+
+ let isDragging = false;
+ let offsetX, offsetY;
+
+ block.addEventListener("mousedown",(e)=>{
+  if(block.dataset.locked==="true") return;
+
+  isDragging = true;
+
+  offsetX = e.clientX - block.offsetLeft;
+  offsetY = e.clientY - block.offsetTop;
+ });
+
+ document.addEventListener("mousemove",(e)=>{
+  if(!isDragging) return;
+
+  block.style.left = (e.clientX - offsetX) + "px";
+  block.style.top = (e.clientY - offsetY) + "px";
+ });
+
+ document.addEventListener("mouseup",()=>{
+
+  if(!isDragging) return;
+
+  isDragging = false;
+
+  targets.forEach(target=>{
+
+   const rect1 = block.getBoundingClientRect();
+   const rect2 = target.getBoundingClientRect();
+
+   const overlap = !(
+    rect1.right < rect2.left ||
+    rect1.left > rect2.right ||
+    rect1.bottom < rect2.top ||
+    rect1.top > rect2.bottom
+   );
+
+   if(overlap && block.dataset.color === target.dataset.color){
+
+    block.style.left = target.style.left;
+    block.style.top = target.style.top;
+
+    block.dataset.locked = "true";
+    block.style.cursor = "default";
+
+    completed++;
+    checkWin();
+   }
+
+  });
+
+ });
+
 });
+
+function checkWin(){
+
+ if(completed === blocks.length){
+  submitBtn.classList.remove("hidden");
+ }
+
+}
+
+submitBtn.addEventListener("click",()=>{
+
+ alert("🔥 You Beat Hard Mode!");
+
+ goToRoom("room4");
+
+});
+
 </script>
+
 </div>
 
 <!-- ROOM 4 -->
@@ -516,6 +561,7 @@ document.addEventListener("keydown", function(event) {
 
 </body>
 </html>
+
 
 
 
