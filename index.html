@@ -207,13 +207,16 @@ let offsetY = 0;
 
 function randomizeTargets(){
 
- const gameWidth = game.clientWidth - 100;
- const gameHeight = game.clientHeight - 100;
+ const game = document.getElementById("game");
+ const targets = document.querySelectorAll("#room3 .target");
+
+ const gameWidth = game.offsetWidth;
+ const gameHeight = game.offsetHeight;
 
  targets.forEach(target => {
 
-  const randomX = Math.random() * gameWidth;
-  const randomY = Math.random() * gameHeight;
+  const randomX = Math.random() * (gameWidth - 80);
+  const randomY = Math.random() * (gameHeight - 80);
 
   target.style.left = randomX + "px";
   target.style.top = randomY + "px";
@@ -222,7 +225,8 @@ function randomizeTargets(){
 
 }
 
-randomizeTargets();
+/* wait until page loads */
+window.addEventListener("load", randomizeTargets);
 
 /* DRAG SYSTEM */
 
@@ -558,5 +562,6 @@ document.addEventListener("keydown", function(event) {
 
 </body>
 </html>
+
 
 
