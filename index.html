@@ -119,7 +119,7 @@ th { background-color: #333; }
   -webkit-background-clip: text;
   color: transparent;
   animation: rainbow 3s linear infinite;
-">Rainbow!</h1>
+">Escape Room</h1>
 
 <style>
 @keyframes rainbow {
@@ -138,8 +138,19 @@ th { background-color: #333; }
 <div id="timerDisplay" class="hidden">Time: 0.00s</div>
 
 <!-- ROOM 1 -->
-<div id="room1" class="room hidden">
-    <h1>Escape Room - Room 1</h1>
+<div id="room1" class="room hidden"><h1 style="
+  background: linear-gradient(to right, red, orange, yellow, green, blue, indigo, violet);
+  -webkit-background-clip: text;
+  color: transparent;
+  animation: rainbow 3s linear infinite;
+">Escape Room - Room 1</h1>
+
+<style>
+@keyframes rainbow {
+  0% { background-position: 0% }
+  100% { background-position: 100% }
+}
+</style>
     <p>There are many things you can click...</p>
     <a href="https://www.youtube.com/watch?v=Dwnui-3-o-4b" target="_blank">If u are bored click this</a>
     <a href="https://www.youtube.com/watch?v=UG9BG7oEk7s" target="_blank">This is a self advertisement</a>
@@ -659,5 +670,6 @@ document.addEventListener("keydown", function(event) {
 
 </body>
 </html>
+
 
 
