@@ -193,80 +193,103 @@ const targets = document.querySelectorAll(".target");
 const submitBtn = document.getElementById("submitBtn");
 
 let currentBlock = null;
-let offsetX=0, offsetY=0;
+let offsetX = 0, offsetY = 0;
 let completed = 0;
 
-/* RANDOM TARGET POSITIONS (non-overlapping) */
+/* RANDOM TARGETS WITHOUT OVERLAP */
 function randomizeTargets(){
- const positions=[];
- targets.forEach(t=>{
-  let x,y,safe=false;
-  while(!safe){
-   x = Math.random()*(game.offsetWidth-100)+20;
-   y = Math.random()*(game.offsetHeight-250)+20;
-   safe = positions.every(p=>{
-     const dx=p.x-x, dy=p.y-y;
-     return Math.sqrt(dx*dx+dy*dy)>=120;
-   });
-  }
-  positions.push({x,y});
-  t.style.left = x+"px";
-  t.style.top = y+"px";
- });
+  const positions = [];
+  const containerWidth = game.clientWidth;
+  const containerHeight = game.clientHeight;
+
+  targets.forEach(t => {
+    let x, y, safe = false;
+    while(!safe){
+      x = Math.random() * (containerWidth - 100) + 20;
+      y = Math.random() * (containerHeight - 250) + 20;
+      safe = true;
+
+      for(let pos of positions){
+        const dx = pos.x - x;
+        const dy = pos.y - y;
+        if(Math.sqrt(dx*dx + dy*dy) < 120){
+          safe = false;
+          break;
+        }
+      }
+    }
+    positions.push({x, y});
+    t.style.left = x + "px";
+    t.style.top = y + "px";
+  });
 }
 
 /* RESET ROOM 3 */
 function enterRoom3(){
-  completed=0;
-  submitBtn.style.display="none";
+  completed = 0;
+  submitBtn.style.display = "none";
   randomizeTargets();
   blocks.forEach(b=>{
-    b.dataset.locked="false";
-    b.style.left=b.dataset.startLeft+"px";
-    b.style.top=b.dataset.startTop+"px";
-    b.style.cursor="grab";
-    b.style.zIndex=1;
+    b.dataset.locked = "false";
+    b.style.left = b.dataset.startLeft + "px";
+    b.style.top = b.dataset.startTop + "px";
+    b.style.cursor = "grab";
+    b.style.zIndex = 1;
   });
 }
 
 /* DRAG START */
 blocks.forEach(b=>{
- b.addEventListener("mousedown", e=>{
-   if(b.dataset.locked==="true") return;
-   currentBlock=b;
-   offsetX=e.clientX-b.offsetLeft;
-   offsetY=e.clientY-b.offsetTop;
-   b.style.zIndex=1000;
- });
+  b.addEventListener("mousedown", e=>{
+    if(b.dataset.locked === "true") return;
+    currentBlock = b;
+    offsetX = e.offsetX;
+    offsetY = e.offsetY;
+    b.style.zIndex = 1000;
+  });
 });
 
 /* DRAGGING */
 document.addEventListener("mousemove", e=>{
- if(!currentBlock) return;
- currentBlock.style.left=(e.clientX-offsetX)+"px";
- currentBlock.style.top=(e.clientY-offsetY)+"px";
+  if(!currentBlock) return;
+  const rect = game.getBoundingClientRect();
+  let left = e.clientX - rect.left - offsetX;
+  let top = e.clientY - rect.top - offsetY;
+
+  // constrain inside game area
+  left = Math.max(0, Math.min(left, game.clientWidth - currentBlock.offsetWidth));
+  top = Math.max(0, Math.min(top, game.clientHeight - currentBlock.offsetHeight));
+
+  currentBlock.style.left = left + "px";
+  currentBlock.style.top = top + "px";
 });
 
 /* DROP & CHECK */
 document.addEventListener("mouseup", ()=>{
- if(!currentBlock) return;
- targets.forEach(t=>{
-   if(currentBlock.dataset.color===t.dataset.color){
-     const bRect=currentBlock.getBoundingClientRect();
-     const tRect=t.getBoundingClientRect();
-     const overlap = !(bRect.right<tRect.left||bRect.left>tRect.right||bRect.bottom<tRect.top||bRect.top>tRect.bottom);
-     if(overlap){
-       currentBlock.style.left = t.style.left;
-       currentBlock.style.top = t.style.top;
-       currentBlock.dataset.locked="true";
-       currentBlock.style.cursor="default";
-       completed++;
-     }
-   }
- });
- currentBlock.style.zIndex=1;
- currentBlock=null;
- if(completed===blocks.length) submitBtn.style.display="inline-block";
+  if(!currentBlock) return;
+  const blockRect = currentBlock.getBoundingClientRect();
+
+  targets.forEach(t=>{
+    if(currentBlock.dataset.color === t.dataset.color){
+      const targetRect = t.getBoundingClientRect();
+      const overlap = !(blockRect.right < targetRect.left ||
+                        blockRect.left > targetRect.right ||
+                        blockRect.bottom < targetRect.top ||
+                        blockRect.top > targetRect.bottom);
+      if(overlap){
+        currentBlock.style.left = t.style.left;
+        currentBlock.style.top = t.style.top;
+        currentBlock.dataset.locked = "true";
+        currentBlock.style.cursor = "default";
+        completed++;
+      }
+    }
+  });
+
+  currentBlock.style.zIndex = 1;
+  currentBlock = null;
+
+  if(completed === blocks.length) submitBtn.style.display = "inline-block";
 });
 
 /* SUBMIT → ROOM 4 */
@@ -524,6 +547,7 @@ document.addEventListener("keydown", function(event) {
 
 </body>
 </html>
+
 
 
 
