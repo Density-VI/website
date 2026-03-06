@@ -230,61 +230,70 @@ function randomizeTargets(){
 randomizeTargets();
 
 /* DRAG SYSTEM */
+const blocks = document.querySelectorAll(".block");
+const targets = document.querySelectorAll(".target");
+const submitBtn = document.getElementById("submitBtn");
+
+let completed = 0;
+let currentBlock = null;
+let offsetX = 0;
+let offsetY = 0;
 
 blocks.forEach(block => {
 
- let isDragging = false;
- let offsetX, offsetY;
-
  block.addEventListener("mousedown",(e)=>{
-  if(block.dataset.locked==="true") return;
 
-  isDragging = true;
+  if(block.dataset.locked === "true") return;
+
+  currentBlock = block;
 
   offsetX = e.clientX - block.offsetLeft;
   offsetY = e.clientY - block.offsetTop;
- });
-
- document.addEventListener("mousemove",(e)=>{
-  if(!isDragging) return;
-
-  block.style.left = (e.clientX - offsetX) + "px";
-  block.style.top = (e.clientY - offsetY) + "px";
- });
-
- document.addEventListener("mouseup",()=>{
-
-  if(!isDragging) return;
-
-  isDragging = false;
-
-  targets.forEach(target=>{
-
-   const rect1 = block.getBoundingClientRect();
-   const rect2 = target.getBoundingClientRect();
-
-   const overlap = !(
-    rect1.right < rect2.left ||
-    rect1.left > rect2.right ||
-    rect1.bottom < rect2.top ||
-    rect1.top > rect2.bottom
-   );
-
-   if(overlap && block.dataset.color === target.dataset.color){
-
-    block.style.left = target.style.left;
-    block.style.top = target.style.top;
-
-    block.dataset.locked = "true";
-    block.style.cursor = "default";
-
-    completed++;
-    checkWin();
-   }
-
-  });
 
  });
+
+});
+
+document.addEventListener("mousemove",(e)=>{
+
+ if(!currentBlock) return;
+
+ currentBlock.style.left = (e.clientX - offsetX) + "px";
+ currentBlock.style.top = (e.clientY - offsetY) + "px";
+
+});
+
+document.addEventListener("mouseup",()=>{
+
+ if(!currentBlock) return;
+
+ targets.forEach(target=>{
+
+  const rect1 = currentBlock.getBoundingClientRect();
+  const rect2 = target.getBoundingClientRect();
+
+  const overlap = !(
+   rect1.right < rect2.left ||
+   rect1.left > rect2.right ||
+   rect1.bottom < rect2.top ||
+   rect1.top > rect2.bottom
+  );
+
+  if(overlap && currentBlock.dataset.color === target.dataset.color){
+
+   currentBlock.style.left = target.style.left;
+   currentBlock.style.top = target.style.top;
+
+   currentBlock.dataset.locked = "true";
+   currentBlock.style.cursor = "default";
+
+   completed++;
+   checkWin();
+  }
+
+ });
+
+ currentBlock = null;
 
 });
 
@@ -295,8 +304,6 @@ function checkWin(){
  }
 
 }
-
-submitBtn.addEventListener("click",()=>{
 
  alert("🔥 You Beat Hard Mode!");
 
@@ -566,6 +573,7 @@ document.addEventListener("keydown", function(event) {
 
 </body>
 </html>
+
 
 
 
