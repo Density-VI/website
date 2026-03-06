@@ -132,17 +132,16 @@ th { background-color: #333; }
 
 <!-- ROOM 3 -->
 <div id="room3" class="room hidden">
+
 <h1>Escape Room 3</h1>
-<h2>Figure it out you're smart enough</h2>
+<h2>Match the colors to unlock the door</h2>
 
 <style>
-
-.hidden{display:none;}
 
 #game{
  position:relative;
  width:100vw;
- height:80vh;
+ height:70vh;
  border:3px solid gray;
  margin-top:20px;
 }
@@ -153,6 +152,7 @@ th { background-color: #333; }
  height:80px;
  border:3px dashed yellow;
  position:absolute;
+ border-radius:10px;
 }
 
 /* blocks */
@@ -166,9 +166,10 @@ th { background-color: #333; }
 
 #submitBtn{
  margin-top:20px;
- padding:10px 20px;
+ padding:12px 30px;
  font-size:18px;
  cursor:pointer;
+ display:none;
 }
 
 </style>
@@ -182,57 +183,51 @@ th { background-color: #333; }
 <div class="target" data-color="purple"></div>
 
 <!-- blocks -->
-<div class="block" data-color="red" style="background:red; left:50px; top:60px;"></div>
-<div class="block" data-color="blue" style="background:blue; left:150px; top:200px;"></div>
-<div class="block" data-color="green" style="background:green; left:80px; top:320px;"></div>
-<div class="block" data-color="purple" style="background:purple; left:200px; top:120px;"></div>
-
+<div class="block" data-color="red" style="background:black; left:40px; top:40px;"></div>
+<div class="block" data-color="blue" style="background:black; left:140px; top:40px;"></div>
+<div class="block" data-color="green" style="background:black; left:240px; top:40px;"></div>
+<div class="block" data-color="purple" style="background:black; left:340px; top:40px;"></div>
 </div>
 
-<button id="submitBtn" class="hidden">Submit</button>
+<button id="submitBtn">Unlock Door</button>
 
 <script>
 
-const game = document.getElementById("game");
 const blocks = document.querySelectorAll("#room3 .block");
 const targets = document.querySelectorAll("#room3 .target");
 const submitBtn = document.getElementById("submitBtn");
+const game = document.getElementById("game");
 
 let completed = 0;
 let currentBlock = null;
-let offsetX = 0;
-let offsetY = 0;
+let offsetX, offsetY;
 
-/* RANDOM TARGETS */
+/* RANDOM TARGET POSITIONS */
 
 function randomizeTargets(){
-
- const game = document.getElementById("game");
- const targets = document.querySelectorAll("#room3 .target");
 
  const gameWidth = game.offsetWidth;
  const gameHeight = game.offsetHeight;
 
  targets.forEach(target => {
 
-  const randomX = Math.random() * (gameWidth - 80);
-  const randomY = Math.random() * (gameHeight - 80);
+  const x = Math.random() * (gameWidth - 100);
+  const y = Math.random() * (gameHeight - 100);
 
-  target.style.left = randomX + "px";
-  target.style.top = randomY + "px";
+  target.style.left = x + "px";
+  target.style.top = y + "px";
 
  });
 
 }
 
-/* wait until page loads */
 window.addEventListener("load", randomizeTargets);
 
-/* DRAG SYSTEM */
+/* DRAG BLOCKS */
 
-blocks.forEach(block=>{
+blocks.forEach(block => {
 
- block.addEventListener("mousedown",(e)=>{
+ block.addEventListener("mousedown", e => {
 
   if(block.dataset.locked === "true") return;
 
@@ -245,7 +240,7 @@ blocks.forEach(block=>{
 
 });
 
-document.addEventListener("mousemove",(e)=>{
+document.addEventListener("mousemove", e => {
 
  if(!currentBlock) return;
 
@@ -254,20 +249,20 @@ document.addEventListener("mousemove",(e)=>{
 
 });
 
-document.addEventListener("mouseup",()=>{
+document.addEventListener("mouseup", () => {
 
  if(!currentBlock) return;
 
- targets.forEach(target=>{
+ targets.forEach(target => {
 
-  const rect1 = currentBlock.getBoundingClientRect();
-  const rect2 = target.getBoundingClientRect();
+  const blockRect = currentBlock.getBoundingClientRect();
+  const targetRect = target.getBoundingClientRect();
 
   const overlap = !(
-   rect1.right < rect2.left ||
-   rect1.left > rect2.right ||
-   rect1.bottom < rect2.top ||
-   rect1.top > rect2.bottom
+   blockRect.right < targetRect.left ||
+   blockRect.left > targetRect.right ||
+   blockRect.bottom < targetRect.top ||
+   blockRect.top > targetRect.bottom
   );
 
   if(overlap && currentBlock.dataset.color === target.dataset.color){
@@ -279,7 +274,6 @@ document.addEventListener("mouseup",()=>{
    currentBlock.style.cursor = "default";
 
    completed++;
-   checkWin();
 
   }
 
@@ -287,31 +281,31 @@ document.addEventListener("mouseup",()=>{
 
  currentBlock = null;
 
+ checkWin();
+
 });
 
-/* WIN CHECK */
+/* WIN CONDITION */
 
 function checkWin(){
 
  if(completed === blocks.length){
-  submitBtn.classList.remove("hidden");
+  submitBtn.style.display = "inline-block";
  }
 
 }
 
-/* BUTTON */
+/* GO TO ROOM 4 */
 
-function checkWin() {
-  if (completed === blocks.length) {
-    setTimeout(() => {
-      alert("🔥 You Beat Hard Mode!");
+submitBtn.addEventListener("click", () => {
+
+ goToRoom("room4");
 
 });
 
 </script>
 
 </div>
-
 <!-- ROOM 4 -->
 <div id="room4" class="room hidden">
     <h1>Escape Room 4</h1>
@@ -562,6 +556,7 @@ document.addEventListener("keydown", function(event) {
 
 </body>
 </html>
+
 
 
 
