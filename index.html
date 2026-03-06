@@ -173,127 +173,183 @@ th { background-color: #333; }
 </style>
 
 <div id="game">
+
+  <!-- TARGETS -->
   <div class="target" data-color="red"></div>
   <div class="target" data-color="blue"></div>
   <div class="target" data-color="green"></div>
   <div class="target" data-color="purple"></div>
 
+  <!-- BLOCKS -->
   <div class="block" data-color="red" data-start-left="150" data-start-top="380" style="left:150px; top:380px;"></div>
   <div class="block" data-color="blue" data-start-left="350" data-start-top="380" style="left:350px; top:380px;"></div>
   <div class="block" data-color="green" data-start-left="550" data-start-top="380" style="left:550px; top:380px;"></div>
   <div class="block" data-color="purple" data-start-left="750" data-start-top="380" style="left:750px; top:380px;"></div>
+
 </div>
 
 <button id="submitBtn">Submit</button>
 
 <script>
+
 const game = document.getElementById("game");
 const blocks = document.querySelectorAll(".block");
 const targets = document.querySelectorAll(".target");
 const submitBtn = document.getElementById("submitBtn");
 
 let currentBlock = null;
-let offsetX = 0, offsetY = 0;
+let offsetX = 0;
+let offsetY = 0;
 let completed = 0;
 
 /* RANDOM TARGETS WITHOUT OVERLAP */
 function randomizeTargets(){
+
   const positions = [];
   const containerWidth = game.clientWidth;
   const containerHeight = game.clientHeight;
 
-  targets.forEach(Targets => {
-    let x, y, safe = false;
-    while(!safe){
-      x = Math.random() * (containerWidth - 900) + 20;
-      y = Math.random() * (containerHeight - 500) + 20;
+  targets.forEach(t => {
+
+    let safe = false;
+    let attempts = 0;
+    let x,y;
+
+    while(!safe && attempts < 200){
+
+      attempts++;
+
+      x = Math.random() * (containerWidth - 100) + 20;
+      y = Math.random() * (containerHeight - 200) + 20;
+
       safe = true;
 
       for(let pos of positions){
+
         const dx = pos.x - x;
         const dy = pos.y - y;
-        if(Math.sqrt(dx*dx + dy*dy) < 120){
+
+        if(Math.abs(dx) < 100 && Math.abs(dy) < 100){
           safe = false;
           break;
         }
+
       }
     }
-    positions.push({x, y});
+
+    positions.push({x,y});
     t.style.left = x + "px";
     t.style.top = y + "px";
+
   });
+
 }
 
 /* RESET ROOM 3 */
 function enterRoom3(){
+
   completed = 0;
   submitBtn.style.display = "none";
-  randomizeTargets();
+
+  /* wait until room is visible */
+  setTimeout(randomizeTargets,50);
+
   blocks.forEach(b=>{
+
     b.dataset.locked = "false";
     b.style.left = b.dataset.startLeft + "px";
     b.style.top = b.dataset.startTop + "px";
     b.style.cursor = "grab";
     b.style.zIndex = 1;
+
   });
+
 }
 
 /* DRAG START */
 blocks.forEach(b=>{
+
   b.addEventListener("mousedown", e=>{
+
     if(b.dataset.locked === "true") return;
+
     currentBlock = b;
     offsetX = e.offsetX;
     offsetY = e.offsetY;
+
     b.style.zIndex = 1000;
+
   });
+
 });
 
 /* DRAGGING */
 document.addEventListener("mousemove", e=>{
+
   if(!currentBlock) return;
+
   const rect = game.getBoundingClientRect();
+
   let left = e.clientX - rect.left - offsetX;
   let top = e.clientY - rect.top - offsetY;
 
-  // constrain inside game area
+  /* keep inside game box */
+
   left = Math.max(0, Math.min(left, game.clientWidth - currentBlock.offsetWidth));
   top = Math.max(0, Math.min(top, game.clientHeight - currentBlock.offsetHeight));
 
   currentBlock.style.left = left + "px";
   currentBlock.style.top = top + "px";
+
 });
 
-/* DROP & CHECK */
+/* DROP CHECK */
 document.addEventListener("mouseup", ()=>{
+
   if(!currentBlock) return;
+
   const blockRect = currentBlock.getBoundingClientRect();
 
   targets.forEach(t=>{
+
     if(currentBlock.dataset.color === t.dataset.color){
+
       const targetRect = t.getBoundingClientRect();
-      const overlap = !(blockRect.right < targetRect.left ||
-                        blockRect.left > targetRect.right ||
-                        blockRect.bottom < targetRect.top ||
-                        blockRect.top > targetRect.bottom);
+
+      const overlap =
+      !(blockRect.right < targetRect.left ||
+        blockRect.left > targetRect.right ||
+        blockRect.bottom < targetRect.top ||
+        blockRect.top > targetRect.bottom);
+
       if(overlap){
-        currentBlock.style.left = t.style.left;
-        currentBlock.style.top = t.style.top;
+
+        currentBlock.style.left = t.offsetLeft + "px";
+        currentBlock.style.top = t.offsetTop + "px";
+
         currentBlock.dataset.locked = "true";
         currentBlock.style.cursor = "default";
+
         completed++;
+
       }
+
     }
+
   });
 
   currentBlock.style.zIndex = 1;
   currentBlock = null;
 
-  if(completed === blocks.length) submitBtn.style.display = "inline-block";
+  if(completed === blocks.length){
+    submitBtn.style.display = "inline-block";
+  }
+
 });
 
-/* SUBMIT → ROOM 4 */
+/* GO TO ROOM 4 */
 submitBtn.onclick = ()=>goToRoom("room4");
+
 </script>
 
 </div>
@@ -547,6 +603,7 @@ document.addEventListener("keydown", function(event) {
 
 </body>
 </html>
+
 
 
 
