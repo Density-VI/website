@@ -137,16 +137,14 @@ th { background-color: #333; }
 <h2>Match the blocks to the correct outlines</h2>
 
 <style>
-
 #game{
- position:relative;
  width:900px;
  height:500px;
  margin:auto;
  border:3px solid gray;
+ position:relative;
 }
 
-/* targets */
 .target{
  width:80px;
  height:80px;
@@ -155,7 +153,6 @@ th { background-color: #333; }
  border-radius:10px;
 }
 
-/* blocks */
 .block{
  width:80px;
  height:80px;
@@ -163,6 +160,7 @@ th { background-color: #333; }
  position:absolute;
  cursor:grab;
  border-radius:10px;
+ touch-action:none; /* smoother on mobile */
 }
 
 #submitBtn{
@@ -172,186 +170,96 @@ th { background-color: #333; }
  display:none;
  cursor:pointer;
 }
-
 </style>
 
-
 <div id="game">
-
-<!-- TARGETS (random positions) -->
 <div class="target" data-color="red"></div>
 <div class="target" data-color="blue"></div>
 <div class="target" data-color="green"></div>
 <div class="target" data-color="purple"></div>
 
-<!-- BLOCKS (fixed bottom position, all black) -->
 <div class="block" data-color="red" style="left:150px; top:380px;"></div>
 <div class="block" data-color="blue" style="left:350px; top:380px;"></div>
 <div class="block" data-color="green" style="left:550px; top:380px;"></div>
 <div class="block" data-color="purple" style="left:750px; top:380px;"></div>
-
 </div>
 
 <button id="submitBtn">Submit</button>
 
-
 <script>
-
-/* VARIABLES */
-
-const blocks = document.querySelectorAll("#room3 .block");
-const targets = document.querySelectorAll("#room3 .target");
-const submitBtn = document.getElementById("submitBtn");
 const game = document.getElementById("game");
+const blocks = document.querySelectorAll(".block");
+const targets = document.querySelectorAll(".target");
+const submitBtn = document.getElementById("submitBtn");
 
 let currentBlock = null;
-let offsetX = 0;
-let offsetY = 0;
+let offsetX=0, offsetY=0;
 let completed = 0;
 
-
-/* RANDOM TARGET POSITIONS (NO OVERLAP) */
-
+/* RANDOM TARGETS (non-overlapping) */
 function randomizeTargets(){
-
- const gameWidth = game.offsetWidth;
- const gameHeight = game.offsetHeight;
-
- const positions = [];
-
- targets.forEach(target => {
-
-  let x,y;
-  let safe = false;
-
+ const positions=[];
+ targets.forEach(t=>{
+  let x,y,safe=false;
   while(!safe){
-
-   x = Math.random() * (gameWidth - 120) + 20;
-   y = Math.random() * (gameHeight - 250) + 20;
-
-   safe = true;
-
-   positions.forEach(pos => {
-
-    const dx = pos.x - x;
-    const dy = pos.y - y;
-
-    const distance = Math.sqrt(dx*dx + dy*dy);
-
-    if(distance < 120){
-     safe = false;
-    }
-
+   x = Math.random()*(game.offsetWidth-100)+20;
+   y = Math.random()*(game.offsetHeight-250)+20;
+   safe = positions.every(p=>{
+     const dx=p.x-x, dy=p.y-y;
+     return Math.sqrt(dx*dx+dy*dy)>=120;
    });
-
   }
-
-  positions.push({x:x,y:y});
-
-  target.style.left = x + "px";
-  target.style.top = y + "px";
-
+  positions.push({x,y});
+  t.style.left = x+"px";
+  t.style.top = y+"px";
  });
-
 }
-
 window.addEventListener("load", randomizeTargets);
 
-
 /* DRAG START */
-
-blocks.forEach(block=>{
-
- block.addEventListener("mousedown",function(e){
-
-  if(block.dataset.locked === "true") return;
-
-  currentBlock = block;
-
-  offsetX = e.clientX - block.offsetLeft;
-  offsetY = e.clientY - block.offsetTop;
-
+blocks.forEach(b=>{
+ b.addEventListener("mousedown", e=>{
+   if(b.dataset.locked==="true") return;
+   currentBlock=b;
+   offsetX=e.clientX-b.offsetLeft;
+   offsetY=e.clientY-b.offsetTop;
+   b.style.zIndex=1000; // bring to front
  });
-
 });
-
 
 /* DRAGGING */
-
-document.addEventListener("mousemove",function(e){
-
+document.addEventListener("mousemove", e=>{
  if(!currentBlock) return;
-
- currentBlock.style.left = (e.clientX - offsetX) + "px";
- currentBlock.style.top = (e.clientY - offsetY) + "px";
-
+ currentBlock.style.left=(e.clientX-offsetX)+"px";
+ currentBlock.style.top=(e.clientY-offsetY)+"px";
 });
 
-
-/* DROP */
-
-document.addEventListener("mouseup",function(){
-
+/* DROP & CHECK */
+document.addEventListener("mouseup", ()=>{
  if(!currentBlock) return;
-
- targets.forEach(target=>{
-
-  const blockRect = currentBlock.getBoundingClientRect();
-  const targetRect = target.getBoundingClientRect();
-
-  const overlap = !(
-
-   blockRect.right < targetRect.left ||
-   blockRect.left > targetRect.right ||
-   blockRect.bottom < targetRect.top ||
-   blockRect.top > targetRect.bottom
-
-  );
-
-  if(overlap && currentBlock.dataset.color === target.dataset.color){
-
-   currentBlock.style.left = target.style.left;
-   currentBlock.style.top = target.style.top;
-
-   currentBlock.dataset.locked = "true";
-   currentBlock.style.cursor = "default";
-
-   completed++;
-
-  }
-
+ targets.forEach(t=>{
+   if(currentBlock.dataset.color===t.dataset.color){
+     const bRect=currentBlock.getBoundingClientRect();
+     const tRect=t.getBoundingClientRect();
+     const overlap = !(bRect.right<tRect.left||bRect.left>tRect.right||bRect.bottom<tRect.top||bRect.top>tRect.bottom);
+     if(overlap){
+       currentBlock.style.left = t.style.left;
+       currentBlock.style.top = t.style.top;
+       currentBlock.dataset.locked="true";
+       currentBlock.style.cursor="default";
+       completed++;
+     }
+   }
  });
-
- currentBlock = null;
-
- checkWin();
-
+ currentBlock.style.zIndex=1;
+ currentBlock=null;
+ if(completed===blocks.length) submitBtn.style.display="inline-block";
 });
 
-
-/* CHECK WIN */
-
-function checkWin(){
-
- if(completed === blocks.length){
-
-  submitBtn.style.display = "inline-block";
-
- }
-
-}
-
-
-/* GO TO ROOM 4 */
-
-submitBtn.onclick = function(){
-
- goToRoom("room4");
-
-};
+/* SUBMIT → ROOM 4 */
+submitBtn.onclick = ()=>goToRoom("room4");
 
 </script>
-
 </div>
 <!-- ROOM 4 -->
 <div id="room4" class="room hidden">
@@ -603,6 +511,7 @@ document.addEventListener("keydown", function(event) {
 
 </body>
 </html>
+
 
 
 
