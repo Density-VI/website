@@ -202,11 +202,11 @@ function randomizeTargets(){
   const containerWidth = game.clientWidth;
   const containerHeight = game.clientHeight;
 
-  targets.forEach(t => {
+  targets.forEach(Targets => {
     let x, y, safe = false;
     while(!safe){
-      x = Math.random() * (containerWidth - 100) + 20;
-      y = Math.random() * (containerHeight - 250) + 20;
+      x = Math.random() * (containerWidth - 900) + 20;
+      y = Math.random() * (containerHeight - 500) + 20;
       safe = true;
 
       for(let pos of positions){
@@ -547,6 +547,7 @@ document.addEventListener("keydown", function(event) {
 
 </body>
 </html>
+
 
 
 
