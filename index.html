@@ -301,10 +301,10 @@ function checkWin(){
 
 /* BUTTON */
 
-submitBtn.addEventListener("click",()=>{
-
- alert("🔥 You Beat Hard Mode!");
- goToRoom("room4");
+function checkWin() {
+  if (completed === blocks.length) {
+    setTimeout(() => {
+      alert("🔥 You Beat Hard Mode!");
 
 });
 
@@ -562,6 +562,7 @@ document.addEventListener("keydown", function(event) {
 
 </body>
 </html>
+
 
 
 
