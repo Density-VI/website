@@ -134,57 +134,56 @@ th { background-color: #333; }
 <div id="room3" class="room hidden">
 
 <h1>Escape Room 3</h1>
-<h2>Match the blocks to the correct outlines</h2>
+<p>Drag the blocks to the outlines</p>
 
 <style>
+
 #game{
- width:900px;
- height:500px;
- margin:auto;
- border:3px solid gray;
- position:relative;
+width:900px;
+height:500px;
+border:3px solid gray;
+margin:auto;
+position:relative;
 }
 
 .target{
- width:80px;
- height:80px;
- border:4px dashed yellow;
- position:absolute;
- border-radius:10px;
+width:80px;
+height:80px;
+border:4px dashed yellow;
+position:absolute;
+border-radius:10px;
 }
 
 .block{
- width:80px;
- height:80px;
- background:black;
- position:absolute;
- cursor:grab;
- border-radius:10px;
- touch-action:none;
+width:80px;
+height:80px;
+background:black;
+position:absolute;
+cursor:grab;
+border-radius:10px;
 }
 
 #submitBtn{
- margin-top:20px;
- padding:12px 25px;
- font-size:18px;
- display:none;
- cursor:pointer;
+margin-top:20px;
+padding:12px 25px;
+font-size:18px;
+display:none;
+cursor:pointer;
 }
+
 </style>
 
 <div id="game">
 
-  <!-- TARGETS -->
-  <div class="target" data-color="red"></div>
-  <div class="target" data-color="blue"></div>
-  <div class="target" data-color="green"></div>
-  <div class="target" data-color="purple"></div>
+<div class="target" data-color="1"></div>
+<div class="target" data-color="2"></div>
+<div class="target" data-color="3"></div>
+<div class="target" data-color="4"></div>
 
-  <!-- BLOCKS -->
-  <div class="block" data-color="red" data-start-left="150" data-start-top="380" style="left:150px; top:380px;"></div>
-  <div class="block" data-color="blue" data-start-left="350" data-start-top="380" style="left:350px; top:380px;"></div>
-  <div class="block" data-color="green" data-start-left="550" data-start-top="380" style="left:550px; top:380px;"></div>
-  <div class="block" data-color="purple" data-start-left="750" data-start-top="380" style="left:750px; top:380px;"></div>
+<div class="block" data-color="1"></div>
+<div class="block" data-color="2"></div>
+<div class="block" data-color="3"></div>
+<div class="block" data-color="4"></div>
 
 </div>
 
@@ -197,158 +196,131 @@ const blocks = document.querySelectorAll(".block");
 const targets = document.querySelectorAll(".target");
 const submitBtn = document.getElementById("submitBtn");
 
-let currentBlock = null;
+let active = null;
 let offsetX = 0;
 let offsetY = 0;
 let completed = 0;
 
-/* RANDOM TARGETS WITHOUT OVERLAP */
+
+/* SAFE TARGET POSITIONS (NO OVERLAP) */
+
 function randomizeTargets(){
 
-  const positions = [];
-  const containerWidth = game.clientWidth;
-  const containerHeight = game.clientHeight;
+const spots = [
+{left:80,top:60},
+{left:300,top:60},
+{left:520,top:60},
+{left:740,top:60},
+{left:150,top:200},
+{left:400,top:200},
+{left:650,top:200},
+];
 
-  targets.forEach(t => {
+spots.sort(()=>Math.random()-0.5);
 
-    let safe = false;
-    let attempts = 0;
-    let x,y;
-
-    while(!safe && attempts < 200){
-
-      attempts++;
-
-      x = Math.random() * (containerWidth - 100) + 20;
-      y = Math.random() * (containerHeight - 200) + 20;
-
-      safe = true;
-
-      for(let pos of positions){
-
-        const dx = pos.x - x;
-        const dy = pos.y - y;
-
-        if(Math.abs(dx) < 100 && Math.abs(dy) < 100){
-          safe = false;
-          break;
-        }
-
-      }
-    }
-
-    positions.push({x,y});
-    t.style.left = x + "px";
-    t.style.top = y + "px";
-
-  });
+targets.forEach((t,i)=>{
+t.style.left = spots[i].left + "px";
+t.style.top = spots[i].top + "px";
+});
 
 }
 
-/* RESET ROOM 3 */
+
+/* RESET ROOM */
+
 function enterRoom3(){
 
-  completed = 0;
-  submitBtn.style.display = "none";
+completed = 0;
+submitBtn.style.display = "none";
 
-  /* wait until room is visible */
-  setTimeout(randomizeTargets,50);
+randomizeTargets();
 
-  blocks.forEach(b=>{
+blocks.forEach((b,i)=>{
 
-    b.dataset.locked = "false";
-    b.style.left = b.dataset.startLeft + "px";
-    b.style.top = b.dataset.startTop + "px";
-    b.style.cursor = "grab";
-    b.style.zIndex = 1;
+b.dataset.locked = "false";
 
-  });
+b.style.left = (150 + i*180) + "px";
+b.style.top = "380px";
+
+});
 
 }
 
+
 /* DRAG START */
-blocks.forEach(b=>{
 
-  b.addEventListener("mousedown", e=>{
+blocks.forEach(block=>{
 
-    if(b.dataset.locked === "true") return;
+block.addEventListener("mousedown",e=>{
 
-    currentBlock = b;
-    offsetX = e.offsetX;
-    offsetY = e.offsetY;
+if(block.dataset.locked==="true") return;
 
-    b.style.zIndex = 1000;
+active = block;
 
-  });
+offsetX = e.offsetX;
+offsetY = e.offsetY;
 
 });
+
+});
+
 
 /* DRAGGING */
-document.addEventListener("mousemove", e=>{
 
-  if(!currentBlock) return;
+document.addEventListener("mousemove",e=>{
 
-  const rect = game.getBoundingClientRect();
+if(!active) return;
 
-  let left = e.clientX - rect.left - offsetX;
-  let top = e.clientY - rect.top - offsetY;
+const rect = game.getBoundingClientRect();
 
-  /* keep inside game box */
-
-  left = Math.max(0, Math.min(left, game.clientWidth - currentBlock.offsetWidth));
-  top = Math.max(0, Math.min(top, game.clientHeight - currentBlock.offsetHeight));
-
-  currentBlock.style.left = left + "px";
-  currentBlock.style.top = top + "px";
+active.style.left = (e.clientX - rect.left - offsetX) + "px";
+active.style.top = (e.clientY - rect.top - offsetY) + "px";
 
 });
 
-/* DROP CHECK */
-document.addEventListener("mouseup", ()=>{
 
-  if(!currentBlock) return;
+/* DROP */
 
-  const blockRect = currentBlock.getBoundingClientRect();
+document.addEventListener("mouseup",()=>{
 
-  targets.forEach(t=>{
+if(!active) return;
 
-    if(currentBlock.dataset.color === t.dataset.color){
+targets.forEach(t=>{
 
-      const targetRect = t.getBoundingClientRect();
+if(active.dataset.color === t.dataset.color){
 
-      const overlap =
-      !(blockRect.right < targetRect.left ||
-        blockRect.left > targetRect.right ||
-        blockRect.bottom < targetRect.top ||
-        blockRect.top > targetRect.bottom);
+const b = active.getBoundingClientRect();
+const r = t.getBoundingClientRect();
 
-      if(overlap){
+const overlap = !(b.right<r.left||b.left>r.right||b.bottom<r.top||b.top>r.bottom);
 
-        currentBlock.style.left = t.offsetLeft + "px";
-        currentBlock.style.top = t.offsetTop + "px";
+if(overlap){
 
-        currentBlock.dataset.locked = "true";
-        currentBlock.style.cursor = "default";
+active.style.left = t.style.left;
+active.style.top = t.style.top;
 
-        completed++;
+active.dataset.locked = "true";
 
-      }
+completed++;
 
-    }
+}
 
-  });
-
-  currentBlock.style.zIndex = 1;
-  currentBlock = null;
-
-  if(completed === blocks.length){
-    submitBtn.style.display = "inline-block";
-  }
+}
 
 });
 
-/* GO TO ROOM 4 */
-submitBtn.onclick = ()=>goToRoom("room4");
+active = null;
+
+if(completed === blocks.length){
+submitBtn.style.display="inline-block";
+}
+
+});
+
+
+submitBtn.onclick = ()=>{
+goToRoom("room4");
+};
 
 </script>
 
@@ -603,6 +575,7 @@ document.addEventListener("keydown", function(event) {
 
 </body>
 </html>
+
 
 
 
