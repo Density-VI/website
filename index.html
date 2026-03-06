@@ -6,6 +6,7 @@
 <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
 
 <style>
+/* GLOBAL STYLES */
 body {
     font-family: Arial, sans-serif;
     background-color: #111;
@@ -14,6 +15,7 @@ body {
     margin: 0;
     padding: 0;
 }
+
 .room { padding: 40px; }
 .hidden { display:none; }
 input, button { padding:10px; margin:10px; }
@@ -70,6 +72,40 @@ th { background-color: #333; }
 
 .escapePunish {
   animation: flashRed 0.6s ease-in-out 2, shake 0.4s ease-in-out 2;
+}
+
+/* ROOM 3 PUZZLE */
+#game{
+    width:900px;
+    height:500px;
+    border:3px solid gray;
+    margin:auto;
+    position:relative;
+}
+
+.target{
+    width:80px;
+    height:80px;
+    border:4px dashed dark gray;
+    position:absolute;
+    border-radius:10px;
+}
+
+.block{
+    width:80px;
+    height:80px;
+    background:black;
+    position:absolute;
+    cursor:grab;
+    border-radius:10px;
+}
+
+#submitBtn{
+    margin-top:20px;
+    padding:12px 25px;
+    font-size:18px;
+    display:none;
+    cursor:pointer;
 }
 </style>
 </head>
@@ -134,44 +170,7 @@ th { background-color: #333; }
 <div id="room3" class="room hidden">
 
 <h1>Escape Room 3</h1>
-<p>Drag the blocks to the outlines</p>
-
-<style>
-
-#game{
-width:900px;
-height:500px;
-border:3px rainbow;
-margin:auto;
-position:relative;
-}
-
-.target{
-width:80px;
-height:80px;
-border:4px dashed yellow;
-position:absolute;
-border-radius:10px;
-}
-
-.block{
-width:80px;
-height:80px;
-background:black;
-position:absolute;
-cursor:grab;
-border-radius:10px;
-}
-
-#submitBtn{
-margin-top:20px;
-padding:12px 25px;
-font-size:18px;
-display:none;
-cursor:pointer;
-}
-
-</style>
+<p> firgure it out your  smart proobably</p>
 
 <div id="game">
 
@@ -189,151 +188,17 @@ cursor:pointer;
 
 <button id="submitBtn">Submit</button>
 
-<script>
-
-const game = document.getElementById("game");
-const blocks = document.querySelectorAll(".block");
-const targets = document.querySelectorAll(".target");
-const submitBtn = document.getElementById("submitBtn");
-
-let active = null;
-let offsetX = 0;
-let offsetY = 0;
-let completed = 0;
-
-
-/* SAFE TARGET POSITIONS (NO OVERLAP) */
-
-function randomizeTargets(){
-
-const spots = [
-{left:80,top:60},
-{left:300,top:60},
-{left:520,top:60},
-{left:740,top:60},
-{left:150,top:200},
-{left:400,top:200},
-{left:650,top:200},
-];
-
-spots.sort(()=>Math.random()-0.5);
-
-targets.forEach((t,i)=>{
-t.style.left = spots[i].left + "px";
-t.style.top = spots[i].top + "px";
-});
-
-}
-
-
-/* RESET ROOM */
-
-function enterRoom3(){
-
-completed = 0;
-submitBtn.style.display = "none";
-
-randomizeTargets();
-
-blocks.forEach((b,i)=>{
-
-b.dataset.locked = "false";
-
-b.style.left = (150 + i*180) + "px";
-b.style.top = "380px";
-
-});
-
-}
-
-
-/* DRAG START */
-
-blocks.forEach(block=>{
-
-block.addEventListener("mousedown",e=>{
-
-if(block.dataset.locked==="true") return;
-
-active = block;
-
-offsetX = e.offsetX;
-offsetY = e.offsetY;
-
-});
-
-});
-
-
-/* DRAGGING */
-
-document.addEventListener("mousemove",e=>{
-
-if(!active) return;
-
-const rect = game.getBoundingClientRect();
-
-active.style.left = (e.clientX - rect.left - offsetX) + "px";
-active.style.top = (e.clientY - rect.top - offsetY) + "px";
-
-});
-
-
-/* DROP */
-
-document.addEventListener("mouseup",()=>{
-
-if(!active) return;
-
-targets.forEach(t=>{
-
-if(active.dataset.color === t.dataset.color){
-
-const b = active.getBoundingClientRect();
-const r = t.getBoundingClientRect();
-
-const overlap = !(b.right<r.left||b.left>r.right||b.bottom<r.top||b.top>r.bottom);
-
-if(overlap){
-
-active.style.left = t.style.left;
-active.style.top = t.style.top;
-
-active.dataset.locked = "true";
-
-completed++;
-
-}
-
-}
-
-});
-
-active = null;
-
-if(completed === blocks.length){
-submitBtn.style.display="inline-block";
-}
-
-});
-
-
-submitBtn.onclick = ()=>{
-goToRoom("room4");
-};
-
-</script>
-
 </div>
+
 <!-- ROOM 4 -->
 <div id="room4" class="room hidden">
     <h1>Escape Room 4</h1>
-    <button onclick="startRoom5()">Enter Final Boss</button>
+    <button onclick="startRoom5()">Enter Final Room</button>
 </div>
 
 <!-- ROOM 5 – FINAL BOSS -->
 <div id="room5" class="room hidden">
-    <h1>FINAL BOSS</h1>
+    <h1>FINAL ROOM!</h1>
     <p id="bossMessage">The final door does not open for the impatient.</p>
 
     <div id="bossPhase2" class="hidden">
@@ -386,7 +251,7 @@ let bossPhase = 1;
 
 const LEADERBOARD_KEY = "escapeRoomLeaderboard";
 
-// Leaderboard
+/* ------------------- LEADERBOARD ------------------- */
 function getLeaderboard() {
     const leaderboard = localStorage.getItem(LEADERBOARD_KEY);
     return leaderboard ? JSON.parse(leaderboard) : [];
@@ -395,13 +260,10 @@ function saveLeaderboard(leaderboard) {
     localStorage.setItem(LEADERBOARD_KEY, JSON.stringify(leaderboard));
 }
 
-// Start game
+/* ------------------- START GAME ------------------- */
 function beginGame() {
     const emailInput = document.getElementById("loginEmail").value;
-    if (!emailInput) {
-        alert("Please choose a username.");
-        return;
-    }
+    if (!emailInput) { alert("Please choose a username."); return; }
     playerEmail = emailInput;
 
     document.getElementById("startPage").classList.add("hidden");
@@ -424,7 +286,7 @@ function stopTimer() {
     return ((Date.now() - startTime) / 1000).toFixed(2);
 }
 
-// ROOM 1 inactivity
+/* ------------------- ROOM 1 INACTIVITY ------------------- */
 function resetIdleTimerRoom1() {
     clearTimeout(inactivityTimer);
     inactivityTimer = setTimeout(winGame, 30000);
@@ -448,6 +310,7 @@ function winGame() {
     }, 3000);
 }
 
+/* ------------------- ROOM 2 ------------------- */
 function checkAnswer() {
     var userInput = document.getElementById("answerBox").value;
     if (userInput === "155596") {
@@ -457,12 +320,132 @@ function checkAnswer() {
     }
 }
 
+/* ------------------- ROOM NAVIGATION ------------------- */
 function goToRoom(nextRoomId) {
     document.querySelectorAll(".room").forEach(r => r.classList.add("hidden"));
     document.getElementById(nextRoomId).classList.remove("hidden");
+
+    if(nextRoomId === "room3"){
+        enterRoom3();
+    }
 }
 
-// FINAL BOSS
+/* ------------------- ROOM 3 PUZZLE ------------------- */
+const game = document.getElementById("game");
+const blocks = document.querySelectorAll(".block");
+const targets = document.querySelectorAll(".target");
+const submitBtn = document.getElementById("submitBtn");
+
+let active = null;
+let offsetX = 0;
+let offsetY = 0;
+let completed = 0;
+
+function randomizeTargets(){
+
+const spots = [
+{left:80,top:60},
+{left:300,top:60},
+{left:520,top:60},
+{left:740,top:60},
+{left:150,top:200},
+{left:400,top:200},
+{left:650,top:200},
+];
+
+spots.sort(()=>Math.random()-0.5);
+
+targets.forEach((t,i)=>{
+t.style.left = spots[i].left + "px";
+t.style.top = spots[i].top + "px";
+});
+
+}
+
+function enterRoom3(){
+
+completed = 0;
+submitBtn.style.display = "none";
+
+randomizeTargets();
+
+blocks.forEach((b,i)=>{
+
+b.dataset.locked = "false";
+b.style.left = (150 + i*180) + "px";
+b.style.top = "380px";
+
+});
+
+}
+
+blocks.forEach(block=>{
+
+block.addEventListener("mousedown",e=>{
+
+if(block.dataset.locked==="true") return;
+
+active = block;
+
+offsetX = e.offsetX;
+offsetY = e.offsetY;
+
+});
+
+});
+
+document.addEventListener("mousemove",e=>{
+
+if(!active) return;
+
+const rect = game.getBoundingClientRect();
+
+active.style.left = (e.clientX - rect.left - offsetX) + "px";
+active.style.top = (e.clientY - rect.top - offsetY) + "px";
+
+});
+
+document.addEventListener("mouseup",()=>{
+
+if(!active) return;
+
+targets.forEach(t=>{
+
+if(active.dataset.color === t.dataset.color){
+
+const b = active.getBoundingClientRect();
+const r = t.getBoundingClientRect();
+
+const overlap = !(b.right<r.left||b.left>r.right||b.bottom<r.top||b.top>r.bottom);
+
+if(overlap){
+
+active.style.left = t.style.left;
+active.style.top = t.style.top;
+
+active.dataset.locked = "true";
+
+completed++;
+
+}
+
+}
+
+});
+
+active = null;
+
+if(completed === blocks.length){
+submitBtn.style.display="inline-block";
+}
+
+});
+
+submitBtn.onclick = ()=>{
+goToRoom("room4");
+};
+
+/* ------------------- FINAL BOSS ------------------- */
 function startRoom5() {
     goToRoom("room5");
     bossPhase = 1;
@@ -510,7 +493,7 @@ function correctChoice() {
         "Your Time: " + finalTime + " seconds";
 }
 
-// Leaderboard
+/* ------------------- LEADERBOARD ------------------- */
 function submitScore() {
     let leaderboard = getLeaderboard();
     leaderboard.push({ email: playerEmail, score: window.playerScore });
@@ -553,20 +536,17 @@ function goHome() {
     location.reload();
 }
 
-// 🔥 ESC Trap for Final Boss
+/* ESC TRAP FOR FINAL BOSS */
 document.addEventListener("keydown", function(event) {
     if (event.key === "Escape") {
-
         const finalChoiceVisible =
             !document.getElementById("bossFinalChoice").classList.contains("hidden");
-
         if (finalChoiceVisible) {
             document.body.classList.add("escapePunish");
-
             setTimeout(function() {
                 document.body.classList.remove("escapePunish");
                 alert("You cannot escape.");
-                location.reload(); // full restart
+                location.reload();
             }, 1000);
         }
     }
@@ -575,17 +555,3 @@ document.addEventListener("keydown", function(event) {
 
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
