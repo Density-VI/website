@@ -134,9 +134,10 @@ th { background-color: #333; }
 <div id="room3" class="room hidden">
 
 <h1>Escape Room 3</h1>
-<h2>Match the blocks to the correct targets</h2>
+<h2>Match the blocks to the correct outlines</h2>
 
 <style>
+
 #game{
  position:relative;
  width:900px;
@@ -171,45 +172,102 @@ th { background-color: #333; }
  display:none;
  cursor:pointer;
 }
+
 </style>
+
 
 <div id="game">
 
-<!-- TARGETS -->
-<div class="target" data-color="red" style="left:150px; top:120px;"></div>
-<div class="target" data-color="blue" style="left:350px; top:120px;"></div>
-<div class="target" data-color="green" style="left:550px; top:120px;"></div>
-<div class="target" data-color="purple" style="left:750px; top:120px;"></div>
+<!-- TARGETS (random positions) -->
+<div class="target" data-color="red"></div>
+<div class="target" data-color="blue"></div>
+<div class="target" data-color="green"></div>
+<div class="target" data-color="purple"></div>
 
-<!-- BLOCKS (ALL BLACK) -->
-<div class="block" data-color="red" style="left:150px; top:350px;"></div>
-<div class="block" data-color="blue" style="left:350px; top:350px;"></div>
-<div class="block" data-color="green" style="left:550px; top:350px;"></div>
-<div class="block" data-color="purple" style="left:750px; top:350px;"></div>
+<!-- BLOCKS (fixed bottom position, all black) -->
+<div class="block" data-color="red" style="left:150px; top:380px;"></div>
+<div class="block" data-color="blue" style="left:350px; top:380px;"></div>
+<div class="block" data-color="green" style="left:550px; top:380px;"></div>
+<div class="block" data-color="purple" style="left:750px; top:380px;"></div>
 
 </div>
 
 <button id="submitBtn">Submit</button>
 
+
 <script>
+
+/* VARIABLES */
 
 const blocks = document.querySelectorAll("#room3 .block");
 const targets = document.querySelectorAll("#room3 .target");
 const submitBtn = document.getElementById("submitBtn");
+const game = document.getElementById("game");
 
 let currentBlock = null;
 let offsetX = 0;
 let offsetY = 0;
 let completed = 0;
 
-/* START DRAG */
-blocks.forEach(block => {
 
- block.addEventListener("mousedown", function(e){
+/* RANDOM TARGET POSITIONS (NO OVERLAP) */
+
+function randomizeTargets(){
+
+ const gameWidth = game.offsetWidth;
+ const gameHeight = game.offsetHeight;
+
+ const positions = [];
+
+ targets.forEach(target => {
+
+  let x,y;
+  let safe = false;
+
+  while(!safe){
+
+   x = Math.random() * (gameWidth - 120) + 20;
+   y = Math.random() * (gameHeight - 250) + 20;
+
+   safe = true;
+
+   positions.forEach(pos => {
+
+    const dx = pos.x - x;
+    const dy = pos.y - y;
+
+    const distance = Math.sqrt(dx*dx + dy*dy);
+
+    if(distance < 120){
+     safe = false;
+    }
+
+   });
+
+  }
+
+  positions.push({x:x,y:y});
+
+  target.style.left = x + "px";
+  target.style.top = y + "px";
+
+ });
+
+}
+
+window.addEventListener("load", randomizeTargets);
+
+
+/* DRAG START */
+
+blocks.forEach(block=>{
+
+ block.addEventListener("mousedown",function(e){
 
   if(block.dataset.locked === "true") return;
 
   currentBlock = block;
+
   offsetX = e.clientX - block.offsetLeft;
   offsetY = e.clientY - block.offsetTop;
 
@@ -217,8 +275,10 @@ blocks.forEach(block => {
 
 });
 
+
 /* DRAGGING */
-document.addEventListener("mousemove", function(e){
+
+document.addEventListener("mousemove",function(e){
 
  if(!currentBlock) return;
 
@@ -227,21 +287,25 @@ document.addEventListener("mousemove", function(e){
 
 });
 
+
 /* DROP */
-document.addEventListener("mouseup", function(){
+
+document.addEventListener("mouseup",function(){
 
  if(!currentBlock) return;
 
- targets.forEach(target => {
+ targets.forEach(target=>{
 
   const blockRect = currentBlock.getBoundingClientRect();
   const targetRect = target.getBoundingClientRect();
 
   const overlap = !(
+
    blockRect.right < targetRect.left ||
    blockRect.left > targetRect.right ||
    blockRect.bottom < targetRect.top ||
    blockRect.top > targetRect.bottom
+
   );
 
   if(overlap && currentBlock.dataset.color === target.dataset.color){
@@ -264,18 +328,26 @@ document.addEventListener("mouseup", function(){
 
 });
 
+
 /* CHECK WIN */
+
 function checkWin(){
 
  if(completed === blocks.length){
+
   submitBtn.style.display = "inline-block";
+
  }
 
 }
 
+
 /* GO TO ROOM 4 */
+
 submitBtn.onclick = function(){
+
  goToRoom("room4");
+
 };
 
 </script>
@@ -531,6 +603,7 @@ document.addEventListener("keydown", function(event) {
 
 </body>
 </html>
+
 
 
 
