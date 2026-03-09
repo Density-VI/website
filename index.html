@@ -402,12 +402,18 @@ function stopTimer() {
 }
 
 /* ------------------- ROOM 1 INACTIVITY ------------------- */
+let inactivityTimer;
+let room1Completed = false;
+
 function resetIdleTimerRoom1() {
+    if (room1Completed) return; // stop if room already passed
     clearTimeout(inactivityTimer);
     inactivityTimer = setTimeout(winGame, 30000);
 }
 
 function resetActivityTimer() {
+    if (room1Completed) return; // ignore activity after completion
+
     if (!document.getElementById("room1").classList.contains("hidden")) {
         resetIdleTimerRoom1();
     }
@@ -418,7 +424,11 @@ document.addEventListener("keypress", resetActivityTimer);
 document.addEventListener("click", resetActivityTimer);
 
 function winGame() {
+    room1Completed = true; // disable the system
+    clearTimeout(inactivityTimer); // stop any running timer
+
     document.getElementById("passedScreen").style.display = "flex";
+
     setTimeout(() => {
         goToRoom("room2");
         document.getElementById("passedScreen").style.display = "none";
@@ -670,6 +680,7 @@ document.addEventListener("keydown", function(event) {
 
 </body>
 </html>
+
 
 
 
