@@ -78,7 +78,7 @@ th { background-color: #333; }
 #game{
     width:900px;
     height:500px;
-    border:3px solid gray;
+    border:3px dark gray;
     margin:auto;
     position:relative;
 }
@@ -86,7 +86,7 @@ th { background-color: #333; }
 .target{
     width:80px;
     height:80px;
-    border:4px dashed dark gray;
+    border:4px dark gray;
     position:absolute;
     border-radius:10px;
 }
@@ -154,6 +154,7 @@ th { background-color: #333; }
     <p>There are many things you can click...</p>
     <a href="https://www.youtube.com/watch?v=Dwnui-3-o-4b" target="_blank">If u are bored click this</a>
     <a href="https://www.youtube.com/watch?v=UG9BG7oEk7s" target="_blank">This is a self advertisement</a>
+    <a href="https://www.youtube.com/watch?v=0pnr0u_m6Ws" target=_blank">???</a>
     <p>Enter the secret code:</p>
     <input type="text" placeholder="Type something...">
     <input type="submit" value="Submit" onclick="alert('Wrong answer, try again')">
@@ -272,7 +273,7 @@ button:hover{
 </head>
 
 <body>
-    <h1>🎰 Slot Machine</h1>
+    <h>Back to gambling I see...</h>
 
     <div class="slot-machine">
       <div class="slot" id="slot1">❓</div>
@@ -298,9 +299,14 @@ function updateBalanceDisplay(){
 
 function spin(){
     if(balance < gambleCost){
-        alert("Reload your page you suk at gambling");
-        return;
-    }
+    alert("You're broke! Back to Room 1... (+$100)");
+
+    balance = 100; // give them $100 again
+    updateBalanceDisplay(); // update UI
+
+    goToRoom("room1");
+    return; // stop the function so it doesn’t continue
+}
 
     balance -= gambleCost; // Pay $15 to play
     updateBalanceDisplay();
@@ -336,6 +342,10 @@ function startRoom5(){
 updateBalanceDisplay();
 </script>
 </div>
+
+     <!-- END OF ROOM 4 -->
+
+
 <!-- ROOM 5 – FINAL BOSS -->
 <div id="room5" class="room hidden">
     <h1>FINAL ROOM!</h1>
@@ -355,6 +365,46 @@ updateBalanceDisplay();
         <button onclick="correctChoice()">STAY</button>
     </div>
 </div>
+    <!-- Room 6 -->
+<div id="room6" class="room hidden">
+    <h1>Room 6</h1>
+    <p>You’re getting close...</p>
+
+    <p><i>"Nothing is given."</i></p>
+
+    <p>Enter the code:</p>
+    <input type="text" id="room6Code">
+    <button onclick="checkRoom6()">Submit</button>
+</div>
+    <!-- room 7 -->
+<div id="room7" class="room hidden">
+    <h1>Room 7</h1>
+    <p>Good luck youll need it!.</p>
+
+    <p>Time to escape this final step!</p>
+    <div id="room7Countdown" style="font-size:40px; color:yellow;">01:00</div>
+
+    <button onclick="finishGame()">🏁 Finish Game</button>
+</div>
+    
+    <div id="fakeAd" style="
+    display:none;
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background:black;
+    color:white;
+    font-size:30px;
+    justify-content:center;
+    align-items:center;
+    flex-direction:column;
+    z-index:9999;
+">
+    <p>🚨 WAIT! Special Offer!</p>
+    <p>Skip ad in <span id="adTimer">15</span>...</p>
+</div>
 
 <!-- FINISH PAGE -->
 <div id="finishPage" class="room hidden">
@@ -367,14 +417,18 @@ updateBalanceDisplay();
 <!-- LEADERBOARD PAGE -->
 <div id="leaderboardPage" class="room hidden">
     <h1>🏆 Your Best Times!</h1>
+
     <table id="leaderboardTable">
         <tr>
             <th>Rank</th>
             <th>Email</th>
-            <th>Score</th>
+            <th>Time</th>
+            <th>Money</th>
         </tr>
     </table>
+
     <br>
+
     <button onclick="goHome()">Back</button>
     <button onclick="resetLeaderboard()">Reset Leaderboard</button>
 </div>
@@ -457,7 +511,7 @@ function winGame() {
 /* ------------------- ROOM 2 ------------------- */
 function checkAnswer() {
     var userInput = document.getElementById("answerBox").value;
-    if (userInput === "1596") {
+    if (userInput === "MDXCVI") {
         goToRoom("room3");
     } else {
         document.getElementById("message").innerHTML = "Wrong answer. Try again!";
@@ -467,7 +521,7 @@ function checkAnswer() {
 /* ------------------- ROOM NAVIGATION ------------------- */
 function goToRoom(nextRoomId) {
 
-    clearTimeout(inactivityTimer); // stop room1 idle timer
+    clearTimeout(inactivityTimer);
 
     document.querySelectorAll(".room").forEach(r => r.classList.add("hidden"));
     document.getElementById(nextRoomId).classList.remove("hidden");
@@ -475,8 +529,18 @@ function goToRoom(nextRoomId) {
     if(nextRoomId === "room3"){
         enterRoom3();
     }
-}
 
+    // ✅ ROOM 7 LOGIC
+    if(nextRoomId === "room7"){
+
+        startRoom7Countdown();
+
+        setTimeout(() => {
+            showFakeAd();
+        }, 3000);
+
+    }
+}
 /* ------------------- ROOM 3 PUZZLE ------------------- */
 const game = document.getElementById("game");
 const blocks = document.querySelectorAll(".block");
@@ -593,23 +657,35 @@ goToRoom("room4");
 };
 
 /* ------------------- FINAL BOSS ------------------- */
-    function startRoom5() {
-
+  function startRoom5() {
     if(balance < targetAmount){
         alert("You need $" + targetAmount + " to enter Room 5. Keep gambling!");
         return;
     }
 
+    // Subtract the $5000 cost
+    balance -= targetAmount;
+    updateBalanceDisplay(); // update the display so player sees it deducted
+
     goToRoom("room5");
     bossPhase = 1;
 
+    // Start impatient timer
+    clearTimeout(bossStillTimer);
     bossStillTimer = setTimeout(unlockBossPhase2, 15000);
 
+    // Track activity to reset impatient timer
     document.addEventListener("mousemove", resetBossStill);
     document.addEventListener("keydown", resetBossStill);
     document.addEventListener("click", resetBossStill);
 }
 
+function resetBossStill() {
+    if (bossPhase !== 1) return;
+    clearTimeout(bossStillTimer);
+    bossStillTimer = setTimeout(unlockBossPhase2, 15000);
+}
+    
 function unlockBossPhase2() {
 
     bossPhase = 2;
@@ -640,22 +716,38 @@ function wrongChoice() {
 }
 
 function correctChoice() {
+    goToRoom("room6");
+}
+    
+/* ------------------- FINISH GAME ------------------- */
+function finishGame() {
+
+    // stop timer
     let finalTime = stopTimer();
+
+    // save score
     window.playerScore = finalTime;
-    goToRoom("finishPage");
+
+    // show time on finish page
     document.getElementById("finalTime").innerText =
         "Your Time: " + finalTime + " seconds";
-}
 
+    // go to finish page
+    goToRoom("finishPage");
+}
+    
 /* ------------------- LEADERBOARD ------------------- */
 function submitScore() {
     let leaderboard = getLeaderboard();
-    leaderboard.push({ email: playerEmail, score: window.playerScore });
+    leaderboard.push({ 
+        email: playerEmail, 
+        score: window.playerScore,
+        money: balance // store the player's money
+    });
     leaderboard.sort((a, b) => parseFloat(a.score) - parseFloat(b.score));
     if (leaderboard.length > 10) leaderboard = leaderboard.slice(0, 10);
     saveLeaderboard(leaderboard);
-    document.getElementById("submitStatus").innerText =
-        "Score Submitted Successfully!";
+    document.getElementById("submitStatus").innerText = "Score Submitted Successfully!";
 }
 
 function showLeaderboard() {
@@ -665,27 +757,27 @@ function showLeaderboard() {
     const leaderboard = getLeaderboard();
     const table = document.getElementById("leaderboardTable");
 
-    table.innerHTML = `<tr><th>Rank</th><th>Email</th><th>Score</th></tr>`;
+    table.innerHTML = `<tr><th>Rank</th><th>Email</th><th>Time</th><th>Money</th></tr>`;
 
     leaderboard.forEach((entry, index) => {
         let row = table.insertRow();
         row.insertCell(0).textContent = index + 1;
         row.insertCell(1).textContent = entry.email;
         row.insertCell(2).textContent = entry.score;
+        row.insertCell(3).textContent = "$" + entry.money;
     });
 }
 
 function resetLeaderboard() {
     let code = prompt("Enter reset code:");
     if (code === "937362") {
-        localStorage.removeItem(LEADERBOARD_KEY);
+        localStorage.removeItem("escapeRoomLeaderboard");
         alert("Leaderboard has been reset.");
         showLeaderboard();
     } else {
         alert("Incorrect code.");
     }
 }
-
 function goHome() {
     location.reload();
 }
@@ -705,6 +797,91 @@ document.addEventListener("keydown", function(event) {
         }
     }
 });
+
+
+
+  /* ========= ROOM 6 CONSOLE PUZZLE ========= */
+
+// Sneaky console hint (looks like dev stuff)
+console.log("dev_mode:", [162, 734, 962].join(""));
+
+// Optional extra hint (faint text)
+console.log("%cNothing is shown. Everything is logged.", "color: gray; font-size: 12px;");
+
+// Check function for Room 6
+function checkRoom6(){
+    const input = document.getElementById("room6Code").value;
+
+    const realCode = "162734962";
+
+    if(input === realCode){
+        goToRoom("room7");
+    } else {
+        alert("Wrong code...");
+    }
+}
+    let room7TimerInterval;
+let room7TimeLeft = 60; // 1 minute countdown
+
+function startRoom7Countdown() {
+    const countdownDisplay = document.getElementById("room7Countdown");
+    room7TimeLeft = 60; // reset to 1 minute
+
+    // Clear any previous interval
+    clearInterval(room7TimerInterval);
+
+    room7TimerInterval = setInterval(() => {
+        let minutes = Math.floor(room7TimeLeft / 60);
+        let seconds = room7TimeLeft % 60;
+
+        countdownDisplay.textContent =
+            (minutes < 10 ? "0" : "") + minutes + ":" +
+            (seconds < 10 ? "0" : "") + seconds;
+
+        if (room7TimeLeft <= 0) {
+            clearInterval(room7TimerInterval);
+            countdownDisplay.textContent = "TIME'S UP!";
+            alert("The final countdown ended! you lost room 7 ur luckey we made a checkpoint in room 1");
+            goToRoom("room1")
+            // Optionally, you could auto-finish or add a penalty here
+        }
+
+        room7TimeLeft--;
+    }, 1000);
+}
+
+// Start countdown when entering Room 7
+const observer = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+        if (mutation.target.id === "room7" && !mutation.target.classList.contains("hidden")) {
+            startRoom7Countdown();
+        }
+    });
+});
+
+// Observe changes to Room 7 visibility
+observer.observe(document.getElementById("room7"), { attributes: true, attributeFilter: ["class"] });
+
+    function showFakeAd() {
+
+    const ad = document.getElementById("fakeAd");
+    const adTimerText = document.getElementById("adTimer");
+
+    ad.style.display = "flex";
+
+    let timeLeft = 15;
+
+    const adInterval = setInterval(() => {
+        timeLeft--;
+        adTimerText.textContent = timeLeft;
+
+        if (timeLeft <= 0) {
+            clearInterval(adInterval);
+            ad.style.display = "none";
+        }
+    }, 1000);
+}
+    
 </script>
 
 </body>
