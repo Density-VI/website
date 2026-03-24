@@ -820,20 +820,18 @@ function checkRoom6(){
         alert("Wrong code...");
     }
 }
-    let room7TimerInterval;
-let room7TimeLeft = 60; // 1 minute countdown
+    // Room 7 countdown
+let room7TimerInterval;
+let room7TimeLeft = 60; // 1 minute
 
 function startRoom7Countdown() {
     const countdownDisplay = document.getElementById("room7Countdown");
-    room7TimeLeft = 60; // reset to 1 minute
-
-    // Clear any previous interval
+    room7TimeLeft = 60;
     clearInterval(room7TimerInterval);
 
     room7TimerInterval = setInterval(() => {
         let minutes = Math.floor(room7TimeLeft / 60);
         let seconds = room7TimeLeft % 60;
-
         countdownDisplay.textContent =
             (minutes < 10 ? "0" : "") + minutes + ":" +
             (seconds < 10 ? "0" : "") + seconds;
@@ -841,16 +839,28 @@ function startRoom7Countdown() {
         if (room7TimeLeft <= 0) {
             clearInterval(room7TimerInterval);
             countdownDisplay.textContent = "TIME'S UP!";
-            alert("The final countdown ended! you lost room 7 ur luckey we made a checkpoint in room 1");
-            goToRoom("room1")
-            // Optionally, you could auto-finish or add a penalty here
+            alert("Time's up! You go back to Room 1.");
+            goToRoom("room1");
         }
 
         room7TimeLeft--;
     }, 1000);
 }
 
-// Start countdown when entering Room 7
+// Puzzle check function
+function checkRoom7Puzzle() {
+    const input = document.getElementById("room7PuzzleInput").value;
+    const correct = "7475"; // Example secret code
+    if (input === correct) {
+        document.getElementById("room7PuzzleMessage").style.color = "lime";
+        document.getElementById("room7PuzzleMessage").innerText = "Correct! You can finish.";
+    } else {
+        document.getElementById("room7PuzzleMessage").style.color = "red";
+        document.getElementById("room7PuzzleMessage").innerText = "Wrong! Try again.";
+    }
+}
+
+// Start countdown automatically when entering Room 7
 const observer = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {
         if (mutation.target.id === "room7" && !mutation.target.classList.contains("hidden")) {
@@ -858,29 +868,7 @@ const observer = new MutationObserver((mutations) => {
         }
     });
 });
-
-// Observe changes to Room 7 visibility
 observer.observe(document.getElementById("room7"), { attributes: true, attributeFilter: ["class"] });
-
-    function showFakeAd() {
-
-    const ad = document.getElementById("fakeAd");
-    const adTimerText = document.getElementById("adTimer");
-
-    ad.style.display = "flex";
-
-    let timeLeft = 15;
-
-    const adInterval = setInterval(() => {
-        timeLeft--;
-        adTimerText.textContent = timeLeft;
-
-        if (timeLeft <= 0) {
-            clearInterval(adInterval);
-            ad.style.display = "none";
-        }
-    }, 1000);
-}
     
 </script>
 
