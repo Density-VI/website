@@ -469,10 +469,6 @@ let inactivityTimer;
 
 let bossStillTimer;
 let bossPhase = 1;
-let balance = 1000; // Starting money
-const winAmount = 500;
-const gambleCost = 10;
-const targetAmount = 5000;
 
 const LEADERBOARD_KEY = "escapeRoomLeaderboard";
 
@@ -528,6 +524,7 @@ document.addEventListener("keypress", resetActivityTimer);
 document.addEventListener("click", resetActivityTimer);
 
 function winGame() {
+
     if(document.getElementById("room1").classList.contains("hidden")) return;
 
     document.getElementById("passedScreen").style.display = "flex";
@@ -550,6 +547,7 @@ function checkAnswer() {
 
 /* ------------------- ROOM NAVIGATION ------------------- */
 function goToRoom(nextRoomId) {
+
     clearTimeout(inactivityTimer);
 
     // Hide all rooms
@@ -558,10 +556,23 @@ function goToRoom(nextRoomId) {
     // Show selected room
     document.getElementById(nextRoomId).classList.remove("hidden");
 
-    if(nextRoomId === "room3") enterRoom3();
-    if(nextRoomId === "room7") setupRoom7();
-}
+    // ROOM 3 SETUP
+    if(nextRoomId === "room3"){
+        enterRoom3();
+    }
 
+    // ✅ ROOM 7 FULL SETUP (COUNTDOWN + AD + VAULT)
+    if(nextRoomId === "room7"){
+
+        startRoom7Countdown();
+
+        setTimeout(() => {
+            showFakeAd();
+        }, 3000);
+
+        initVault(); // 👈 THIS FIXES YOUR VAULT ISSUE
+    }
+}
 /* ------------------- ROOM 3 PUZZLE ------------------- */
 const game = document.getElementById("game");
 const blocks = document.querySelectorAll(".block");
@@ -574,107 +585,156 @@ let offsetY = 0;
 let completed = 0;
 
 function randomizeTargets(){
-    const spots = [
-        {left:80,top:60},{left:300,top:60},{left:520,top:60},{left:740,top:60},
-        {left:150,top:200},{left:400,top:200},{left:650,top:200},
-    ];
-    spots.sort(()=>Math.random()-0.5);
-    targets.forEach((t,i)=>{
-        t.style.left = spots[i].left + "px";
-        t.style.top = spots[i].top + "px";
-    });
+
+const spots = [
+{left:80,top:60},
+{left:300,top:60},
+{left:520,top:60},
+{left:740,top:60},
+{left:150,top:200},
+{left:400,top:200},
+{left:650,top:200},
+];
+
+spots.sort(()=>Math.random()-0.5);
+
+targets.forEach((t,i)=>{
+t.style.left = spots[i].left + "px";
+t.style.top = spots[i].top + "px";
+});
+
 }
 
 function enterRoom3(){
-    completed = 0;
-    submitBtn.style.display = "none";
-    randomizeTargets();
 
-    blocks.forEach((b,i)=>{
-        b.dataset.locked = "false";
-        b.style.left = (150 + i*180) + "px";
-        b.style.top = "380px";
-    });
+completed = 0;
+submitBtn.style.display = "none";
+
+randomizeTargets();
+
+blocks.forEach((b,i)=>{
+
+b.dataset.locked = "false";
+b.style.left = (150 + i*180) + "px";
+b.style.top = "380px";
+
+});
+
 }
 
 blocks.forEach(block=>{
-    block.addEventListener("mousedown", e=>{
-        if(block.dataset.locked==="true") return;
-        active = block;
-        offsetX = e.offsetX;
-        offsetY = e.offsetY;
-    });
+
+block.addEventListener("mousedown",e=>{
+
+if(block.dataset.locked==="true") return;
+
+active = block;
+
+offsetX = e.offsetX;
+offsetY = e.offsetY;
+
 });
 
-document.addEventListener("mousemove", e=>{
-    if(!active) return;
-    const rect = game.getBoundingClientRect();
-    active.style.left = (e.clientX - rect.left - offsetX) + "px";
-    active.style.top = (e.clientY - rect.top - offsetY) + "px";
 });
 
-document.addEventListener("mouseup", ()=>{
-    if(!active) return;
+document.addEventListener("mousemove",e=>{
 
-    targets.forEach(t=>{
-        if(active.dataset.color === t.dataset.color){
-            const b = active.getBoundingClientRect();
-            const r = t.getBoundingClientRect();
-            const overlap = !(b.right<r.left||b.left>r.right||b.bottom<r.top||b.top>r.bottom);
-            if(overlap && active.dataset.locked !== "true"){
-                active.style.left = t.style.left;
-                active.style.top = t.style.top;
-                active.dataset.locked = "true";
-                completed++;
-            }
-        }
-    });
+if(!active) return;
 
-    active = null;
-    if(completed === blocks.length){
-        submitBtn.style.display="inline-block";
-    }
+const rect = game.getBoundingClientRect();
+
+active.style.left = (e.clientX - rect.left - offsetX) + "px";
+active.style.top = (e.clientY - rect.top - offsetY) + "px";
+
 });
 
-submitBtn.onclick = ()=>{ goToRoom("room4"); };
+document.addEventListener("mouseup",()=>{
+
+if(!active) return;
+
+targets.forEach(t=>{
+
+if(active.dataset.color === t.dataset.color){
+
+const b = active.getBoundingClientRect();
+const r = t.getBoundingClientRect();
+
+const overlap = !(b.right<r.left||b.left>r.right||b.bottom<r.top||b.top>r.bottom);
+
+if(overlap && active.dataset.locked !== "true"){
+
+active.style.left = t.style.left;
+active.style.top = t.style.top;
+
+active.dataset.locked = "true";
+
+completed++;
+
+}
+
+}
+
+});
+
+active = null;
+
+if(completed === blocks.length){
+submitBtn.style.display="inline-block";
+}
+
+});
+
+submitBtn.onclick = ()=>{
+goToRoom("room4");
+};
 
 /* ------------------- FINAL BOSS ------------------- */
-function startRoom5() {
+  function startRoom5() {
     if(balance < targetAmount){
         alert("You need $" + targetAmount + " to enter Room 5. Keep gambling!");
         return;
     }
+
+    // Subtract the $5000 cost
     balance -= targetAmount;
-    updateBalanceDisplay();
+    updateBalanceDisplay(); // update the display so player sees it deducted
+
     goToRoom("room5");
     bossPhase = 1;
 
+    // Start impatient timer
     clearTimeout(bossStillTimer);
     bossStillTimer = setTimeout(unlockBossPhase2, 15000);
 
+    // Track activity to reset impatient timer
     document.addEventListener("mousemove", resetBossStill);
     document.addEventListener("keydown", resetBossStill);
     document.addEventListener("click", resetBossStill);
 }
 
 function resetBossStill() {
-    if(bossPhase !== 1) return;
+    if (bossPhase !== 1) return;
     clearTimeout(bossStillTimer);
     bossStillTimer = setTimeout(unlockBossPhase2, 15000);
 }
-
+    
 function unlockBossPhase2() {
+
     bossPhase = 2;
+
     document.removeEventListener("mousemove", resetBossStill);
     document.removeEventListener("keydown", resetBossStill);
     document.removeEventListener("click", resetBossStill);
-    document.getElementById("bossMessage").innerText = "You have mastered patience.";
+
+    document.getElementById("bossMessage").innerText =
+        "You have mastered patience.";
+
     document.getElementById("bossPhase2").classList.remove("hidden");
 }
 
 function checkBossCode() {
     const input = document.getElementById("bossInput").value;
-    if(input === "7453623"){
+    if (input === "7453623") {
         document.getElementById("bossPhase2").classList.add("hidden");
         document.getElementById("bossFinalChoice").classList.remove("hidden");
     } else {
@@ -682,93 +742,154 @@ function checkBossCode() {
     }
 }
 
-function wrongChoice(){ alert("You cannot escape what you have become..."); goToRoom("room1"); }
-function correctChoice(){ goToRoom("room6"); }
+function wrongChoice() { 
+    alert("You cannot escape what you have become..."); 
+    goToRoom("room1");
+}
 
-function finishGame(){
+function correctChoice() {
+    goToRoom("room6");
+}
+    
+/* ------------------- FINISH GAME ------------------- */
+function finishGame() {
+
+    // stop timer
     let finalTime = stopTimer();
+
+    // save score
     window.playerScore = finalTime;
-    document.getElementById("finalTime").innerText = "Your Time: " + finalTime + " seconds";
+
+    // show time on finish page
+    document.getElementById("finalTime").innerText =
+        "Your Time: " + finalTime + " seconds";
+
+    // go to finish page
     goToRoom("finishPage");
 }
-
-/* ------------------- ROOM 6 PUZZLE ------------------- */
-console.log("dev_mode:", [162,734,962].join(""));
-console.log("%cNothing is shown. Everything is logged.", "color: gray; font-size: 12px;");
-
-function checkRoom6(){
-    const input = document.getElementById("room6Code").value;
-    const realCode = "162734962";
-    if(input === realCode) goToRoom("room7");
-    else alert("Wrong code...");
-}
-
+    
 /* ------------------- LEADERBOARD ------------------- */
 function submitScore() {
     let leaderboard = getLeaderboard();
-    leaderboard.push({ email: playerEmail, score: window.playerScore, money: balance });
-    leaderboard.sort((a,b)=>parseFloat(a.score)-parseFloat(b.score));
-    if(leaderboard.length>10) leaderboard = leaderboard.slice(0,10);
+    leaderboard.push({ 
+        email: playerEmail, 
+        score: window.playerScore,
+        money: balance // store the player's money
+    });
+    leaderboard.sort((a, b) => parseFloat(a.score) - parseFloat(b.score));
+    if (leaderboard.length > 10) leaderboard = leaderboard.slice(0, 10);
     saveLeaderboard(leaderboard);
     document.getElementById("submitStatus").innerText = "Score Submitted Successfully!";
 }
 
 function showLeaderboard() {
-    document.querySelectorAll(".room").forEach(r=>r.classList.add("hidden"));
+    document.querySelectorAll(".room").forEach(r => r.classList.add("hidden"));
     document.getElementById("leaderboardPage").classList.remove("hidden");
 
     const leaderboard = getLeaderboard();
     const table = document.getElementById("leaderboardTable");
+
     table.innerHTML = `<tr><th>Rank</th><th>Email</th><th>Time</th><th>Money</th></tr>`;
-    leaderboard.forEach((entry,index)=>{
+
+    leaderboard.forEach((entry, index) => {
         let row = table.insertRow();
-        row.insertCell(0).textContent = index+1;
+        row.insertCell(0).textContent = index + 1;
         row.insertCell(1).textContent = entry.email;
         row.insertCell(2).textContent = entry.score;
-        row.insertCell(3).textContent = "$"+entry.money;
+        row.insertCell(3).textContent = "$" + entry.money;
     });
 }
 
 function resetLeaderboard() {
     let code = prompt("Enter reset code:");
-    if(code==="937362"){
-        localStorage.removeItem(LEADERBOARD_KEY);
+    if (code === "937362") {
+        localStorage.removeItem("escapeRoomLeaderboard");
         alert("Leaderboard has been reset.");
         showLeaderboard();
-    } else alert("Incorrect code.");
+    } else {
+        alert("Incorrect code.");
+    }
+}
+function goHome() {
+    location.reload();
 }
 
-function goHome(){ location.reload(); }
+/* ESC TRAP FOR FINAL BOSS */
+document.addEventListener("keydown", function(event) {
+    if (event.key === "Escape") {
+        const finalChoiceVisible =
+            !document.getElementById("bossFinalChoice").classList.contains("hidden");
+        if (finalChoiceVisible) {
+            document.body.classList.add("escapePunish");
+            setTimeout(function() {
+                document.body.classList.remove("escapePunish");
+                alert("You cannot escape.");
+                location.reload();
+            }, 1000);
+        }
+    }
+});
 
-/* ------------------- ROOM 7 PUZZLE ------------------- */
-let room7TimerInterval, room7TimeLeft=60, vaultInitialized=false;
-const room7Code=[1,2,3,4], room7Sequence=[];
 
-function setupRoom7(){
+
+  /* ========= ROOM 6 CONSOLE PUZZLE ========= */
+
+// Sneaky console hint (looks like dev stuff)
+console.log("dev_mode:", [162, 734, 962].join(""));
+
+// Optional extra hint (faint text)
+console.log("%cNothing is shown. Everything is logged.", "color: gray; font-size: 12px;");
+
+// Check function for Room 6
+function checkRoom6(){
+    const input = document.getElementById("room6Code").value;
+
+    const realCode = "162734962";
+
+    if(input === realCode){
+        goToRoom("room7");
+    } else {
+        alert("Wrong code...");
+    }
+}
+   <script>
+// ===== ROOM 7 VARIABLES =====
+let room7TimerInterval;
+let room7TimeLeft = 60; // 1 minute countdown
+let vaultInitialized = false;
+let room7Sequence = [];
+const room7Code = [1,2,3,4];
+let room7SequenceTimeout;
+
+// ===== COUNTDOWN TIMER =====
+function startRoom7Countdown() {
     const countdownDisplay = document.getElementById("room7Countdown");
-    room7TimeLeft = 60;
+    room7TimeLeft = 60; // reset
+
     clearInterval(room7TimerInterval);
 
-    room7TimerInterval = setInterval(()=>{
-        let minutes = Math.floor(room7TimeLeft/60);
-        let seconds = room7TimeLeft%60;
+    room7TimerInterval = setInterval(() => {
+        let minutes = Math.floor(room7TimeLeft / 60);
+        let seconds = room7TimeLeft % 60;
+
         countdownDisplay.textContent =
-            (minutes<10?"0":"")+minutes+":"+(seconds<10?"0":"")+seconds;
-        if(room7TimeLeft<=0){
+            (minutes < 10 ? "0" : "") + minutes + ":" +
+            (seconds < 10 ? "0" : "") + seconds;
+
+        if (room7TimeLeft <= 0) {
             clearInterval(room7TimerInterval);
             countdownDisplay.textContent = "TIME'S UP!";
-            alert("The final countdown ended! You lost Room 7.");
+            alert("The final countdown ended! You lost Room 7. Lucky for you, there's a checkpoint in Room 1.");
             goToRoom("room1");
         }
-        room7TimeLeft--;
-    },1000);
 
-    initVault();
+        room7TimeLeft--;
+    }, 1000);
 }
 
-// ===== VAULT =====
-function initVault(){
-    if(vaultInitialized) return;
+// ===== VAULT (DECORATIVE ONLY) =====
+function initVault() {
+    if (vaultInitialized) return;
     vaultInitialized = true;
 
     let currentNumber = 1;
@@ -777,55 +898,83 @@ function initVault(){
     const currentNumDisplay = document.getElementById("currentNumber");
     const lockBtn = document.getElementById("lockNumberBtn");
 
-    // CREATE NUMBERS
-    for(let i=1;i<=9;i++){
+    // CREATE NUMBERS IN CIRCLE
+    for (let i = 1; i <= 9; i++) {
         let num = document.createElement("div");
-        num.className="number";
-        num.innerText=i;
-        let deg=(i-1)*(360/9);
+        num.className = "number";
+        num.innerText = i;
+        let deg = (i - 1) * (360 / 9);
         num.style.transform = `rotate(${deg}deg) translateY(-100px) rotate(-${deg}deg)`;
         dialNumbers.appendChild(num);
     }
 
-    document.getElementById("dial").addEventListener("wheel", e=>{
+    document.getElementById("dial").addEventListener("wheel", (e) => {
         e.preventDefault();
-        currentNumber += e.deltaY>0?1:-1;
-        if(currentNumber>9) currentNumber=1;
-        if(currentNumber<1) currentNumber=9;
-        angle = -(currentNumber-1)*(360/9);
+        currentNumber += e.deltaY > 0 ? 1 : -1;
+        if (currentNumber > 9) currentNumber = 1;
+        if (currentNumber < 1) currentNumber = 9;
+        angle = -(currentNumber - 1) * (360 / 9);
         dialNumbers.style.transform = `rotate(${angle}deg)`;
         currentNumDisplay.textContent = currentNumber;
     });
 
-    lockBtn.addEventListener("click", ()=>{
-        currentNumDisplay.style.color="orange";
+    lockBtn.addEventListener("click", () => {
+        currentNumDisplay.style.color = "orange"; // purely visual
     });
 }
 
-// ROOM 7 BUTTON SEQUENCE
-document.querySelectorAll("#room7 .room-button").forEach(btn=>{
-    btn.addEventListener("click", ()=>{
-        const roomNum = parseInt(btn.dataset.room);
-        room7Sequence.push(roomNum);
+// ===== ROOM SEQUENCE PUZZLE (HIDDEN) =====
+function room7RoomClick(roomNum) {
+    clearTimeout(room7SequenceTimeout);
+    room7Sequence.push(roomNum);
 
-        setTimeout(()=>{
-            goToRoom("room"+roomNum);
-            room7Sequence.length=0;
-        },1000);
+    // 1-second timeout to move to clicked room
+    room7SequenceTimeout = setTimeout(() => {
+        goToRoom("room" + roomNum);
+        room7Sequence = [];
+    }, 1000);
 
-        for(let i=0;i<room7Sequence.length;i++){
-            if(room7Sequence[i]!==room7Code[i]){
-                room7Sequence.length=0;
-                goToRoom("room1");
-                return;
-            }
+    // check sequence
+    for (let i = 0; i < room7Sequence.length; i++) {
+        if (room7Sequence[i] !== room7Code[i]) {
+            room7Sequence = [];
+            goToRoom("room1"); // silently reset
+            return;
         }
-        if(room7Sequence.length===room7Code.length){
-            room7Sequence.length=0;
-            finishGame();
+    }
+
+    // completed sequence
+    if (room7Sequence.length === room7Code.length) {
+        room7Sequence = [];
+        finishGame();
+    }
+}
+
+// attach click events to buttons in Room 7
+document.querySelectorAll("#room7 .room-button").forEach(btn => {
+    btn.addEventListener("click", () => {
+        const roomNum = parseInt(btn.dataset.room);
+        room7RoomClick(roomNum);
+    });
+});
+
+// ===== SETUP ROOM 7 WHEN VISIBLE =====
+function setupRoom7() {
+    startRoom7Countdown();
+    initVault();
+}
+
+// trigger setupRoom7 when Room 7 becomes visible
+const observer = new MutationObserver((mutations) => {
+    mutations.forEach(m => {
+        if (m.target.id === "room7" && !m.target.classList.contains("hidden")) {
+            setupRoom7();
         }
     });
 });
+observer.observe(document.body, { attributes: true, subtree: true });
+</script>
+    
 </script>
 
 </body>
