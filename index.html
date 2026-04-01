@@ -561,17 +561,15 @@ function goToRoom(nextRoomId) {
         enterRoom3();
     }
 
-    // ✅ ROOM 7 FULL SETUP (COUNTDOWN + AD + VAULT)
-    if(nextRoomId === "room7"){
+    // ✅ ROOM 7 
+ if(nextRoomId === "room7"){
 
+    if(!room7Started){
         startRoom7Countdown();
-
-        setTimeout(() => {
-            showFakeAd();
-        }, 3000);
-
-        initVault(); // 👈 THIS FIXES YOUR VAULT ISSUE
+        room7Started = true;
     }
+
+    initVault();
 }
 /* ------------------- ROOM 3 PUZZLE ------------------- */
 const game = document.getElementById("game");
