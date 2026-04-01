@@ -565,11 +565,10 @@ function goToRoom(nextRoomId) {
     // ✅ ROOM 7 
 if(nextRoomId === "room7"){
 
-    startRoom7Countdown();
-
-    setTimeout(() => {
-        showFakeAd();
-    }, 3000);
+    if(!room7Started){
+        startRoom7Countdown();
+        room7Started = true;
+    }
 
     initVault();
 }
