@@ -843,18 +843,12 @@ console.log("%cNothing is shown. Everything is logged.", "color: gray; font-size
 function checkRoom6(){
     const input = document.getElementById("room6Code").value;
     const realCode = "162734962";
-
     if(input === realCode){
-        if(!room7Started){
-            room7Started = true;
-            setupRoom7(); // starts countdown and vault
-        }
         goToRoom("room7");
     } else {
         alert("Wrong code...");
     }
 }
-
 let room7TimerInterval;
 let room7TimeLeft = 60;
 let vaultInitialized = false;
