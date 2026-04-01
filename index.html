@@ -894,29 +894,34 @@ function initVault(){
 }
 
 // ===== ROOM SEQUENCE PUZZLE (hidden) =====
-function room7RoomClick(roomNum){
+function room7RoomClick(roomNum) {
     clearTimeout(room7SequenceTimeout);
     room7Sequence.push(roomNum);
 
-    // 1-second timeout to move to last clicked room
-    room7SequenceTimeout = setTimeout(()=>{
-        goToRoom("room"+roomNum);
+    // delay before sending to room
+    room7SequenceTimeout = setTimeout(() => {
+        goToRoom("room" + roomNum);
         room7Sequence = [];
     }, 1000);
 
     // check sequence
-    for(let i=0;i<room7Sequence.length;i++){
-        if(room7Sequence[i] !== room7Code[i]){
+    for (let i = 0; i < room7Sequence.length; i++) {
+        if (room7Sequence[i] !== room7Code[i]) {
             room7Sequence = [];
-            goToRoom("room1"); // silently send back
+            goToRoom("room1");
             return;
         }
     }
 
-    // completed sequence
-    if(room7Sequence.length === room7Code.length){
+    // ✅ CORRECT CODE ENTERED
+    if (room7Sequence.length === room7Code.length){
         room7Sequence = [];
+
+        clearTimeout(room7SequenceTimeout); // STOP delayed teleport
+        clearInterval(room7TimerInterval);  // STOP timer
+
         finishGame();
+        return; // 🛑 prevents going back to room 4 or anywhere else
     }
 }
 
