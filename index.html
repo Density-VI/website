@@ -386,8 +386,7 @@ updateBalanceDisplay();
     <input type="text" id="room6Code">
     <button onclick="checkRoom6()">Submit</button>
 </div>
-    <!-- room 7 -->
-<!-- ROOM 7 -->
+   <!-- ROOM 7 -->
 <div id="room7" class="room hidden">
     <h1>Room 7 – The Vault</h1>
     <p>Good luck, you'll need it!</p>
@@ -466,7 +465,6 @@ let playerEmail = "";
 let startTime;
 let timerInterval;
 let inactivityTimer;
-let room7Started = false;
 
 let bossStillTimer;
 let bossPhase = 1;
@@ -562,15 +560,17 @@ function goToRoom(nextRoomId) {
         enterRoom3();
     }
 
-    // ✅ ROOM 7 
-if(nextRoomId === "room7"){
+    // ✅ ROOM 7 FULL SETUP (COUNTDOWN + AD + VAULT)
+    if(nextRoomId === "room7"){
 
-    if(!room7Started){
         startRoom7Countdown();
-        room7Started = true;
-    }
 
-    initVault();
+        setTimeout(() => {
+            showFakeAd();
+        }, 3000);
+
+        initVault(); // 👈 THIS FIXES YOUR VAULT ISSUE
+    }
 }
 /* ------------------- ROOM 3 PUZZLE ------------------- */
 const game = document.getElementById("game");
@@ -842,18 +842,16 @@ console.log("%cNothing is shown. Everything is logged.", "color: gray; font-size
 // Check function for Room 6
 function checkRoom6(){
     const input = document.getElementById("room6Code").value;
+
     const realCode = "162734962";
 
     if(input === realCode){
-        if(!room7Started){
-            room7Started = true;
-            setupRoom7(); // starts countdown and vault
-        }
         goToRoom("room7");
     } else {
         alert("Wrong code...");
     }
 }
+  // ===== ROOM 7 PUZZLE INTEGRATION =====
 let room7TimerInterval;
 let room7TimeLeft = 60;
 let vaultInitialized = false;
@@ -872,7 +870,7 @@ function initVault(){
     const currentNumDisplay = document.getElementById("currentNumber");
     const lockBtn = document.getElementById("lockNumberBtn");
 
-    // create numbers around circle
+    // create numbers in circle
     for(let i=1;i<=9;i++){
         let num = document.createElement("div");
         num.className = "number";
@@ -893,39 +891,34 @@ function initVault(){
     });
 
     lockBtn.addEventListener("click", ()=>{
-        currentNumDisplay.style.color = "orange"; // just visual, does nothing
+        currentNumDisplay.style.color = "orange"; // purely visual, does nothing
     });
 }
 
 // ===== ROOM SEQUENCE PUZZLE (hidden) =====
-function room7RoomClick(roomNum) {
+function room7RoomClick(roomNum){
     clearTimeout(room7SequenceTimeout);
     room7Sequence.push(roomNum);
 
-    // delay before sending to room
-    room7SequenceTimeout = setTimeout(() => {
-        goToRoom("room" + roomNum);
+    // 1-second timeout: move player to last clicked room
+    room7SequenceTimeout = setTimeout(()=>{
+        goToRoom("room"+roomNum);
         room7Sequence = [];
     }, 1000);
 
     // check sequence
-    for (let i = 0; i < room7Sequence.length; i++) {
-        if (room7Sequence[i] !== room7Code[i]) {
+    for(let i=0;i<room7Sequence.length;i++){
+        if(room7Sequence[i] !== room7Code[i]){
             room7Sequence = [];
-            goToRoom("room1");
+            goToRoom("room1"); // silently reset
             return;
         }
     }
 
-    // ✅ CORRECT CODE ENTERED
-    if (room7Sequence.length === room7Code.length){
+    // completed sequence
+    if(room7Sequence.length === room7Code.length){
         room7Sequence = [];
-
-        clearTimeout(room7SequenceTimeout); // STOP delayed teleport
-        clearInterval(room7TimerInterval);  // STOP timer
-
         finishGame();
-        return; // 🛑 prevents going back to room 4 or anywhere else
     }
 }
 
@@ -953,7 +946,7 @@ function startRoom7Countdown(){
         if(room7TimeLeft<=0){
             clearInterval(room7TimerInterval);
             countdownDisplay.textContent="TIME'S UP!";
-            goToRoom("room1"); // silently send back
+            goToRoom("room1"); // silently reset
         }
 
         room7TimeLeft--;
@@ -966,7 +959,7 @@ function setupRoom7(){
     initVault();
 }
 
-// call setupRoom7 when Room 7 becomes visible
+// trigger setupRoom7 when Room 7 becomes visible
 const observer = new MutationObserver((mutations)=>{
     mutations.forEach(m=>{
         if(m.target.id==="room7" && !m.target.classList.contains("hidden")){
