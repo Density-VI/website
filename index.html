@@ -563,14 +563,35 @@ function goToRoom(nextRoomId) {
     // ✅ ROOM 7 FULL SETUP (COUNTDOWN + AD + VAULT)
     if(nextRoomId === "room7"){
 
-        startRoom7Countdown();
+       function startRoom7Countdown(){
+    const countdownDisplay = document.getElementById("room7Countdown");
 
-        setTimeout(() => {
-            showFakeAd();
-        }, 3000);
+    // Don't start multiple timers
+    if (room7TimerInterval) return;
 
-        initVault(); // 👈 THIS FIXES YOUR VAULT ISSUE
+    // Only set time once
+    if (!room7TimerStarted) {
+        room7TimeLeft = 60;
+        room7TimerStarted = true;
     }
+
+    room7TimerInterval = setInterval(()=>{
+        let minutes = Math.floor(room7TimeLeft/60);
+        let seconds = room7TimeLeft%60;
+
+        countdownDisplay.textContent =
+            (minutes<10?"0":"")+minutes+":"+
+            (seconds<10?"0":"")+seconds;
+
+        if(room7TimeLeft <= 0){
+            clearInterval(room7TimerInterval);
+            room7TimerInterval = null;
+            countdownDisplay.textContent = "TIME'S UP!";
+            goToRoom("room1");
+        }
+
+        room7TimeLeft--;
+    },1000);
 }
 /* ------------------- ROOM 3 PUZZLE ------------------- */
 const game = document.getElementById("game");
