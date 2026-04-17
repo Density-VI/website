@@ -931,14 +931,6 @@ function room7RoomClick(roomNum) {
         return;
     }
 }
-
-    // completed sequence
-    if(room7Sequence.length === room7Code.length){
-        room7Sequence = [];
-        finishGame();
-    }
-}
-
 // attach click events to buttons
 document.querySelectorAll("#room7 .room-button").forEach(btn=>{
     btn.addEventListener("click", ()=>{
