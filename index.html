@@ -860,31 +860,76 @@ const room7Code = [1,2,3,4];
 let room7SequenceTimeout;
 
 // ===== VAULT (Decorative only) =====
-let vaultInput = [];
+function initVault(){
+    if(vaultInitialized) return;
+    vaultInitialized = true;
 
-lockBtn.addEventListener("click", ()=>{
-    vaultInput.push(currentNumber);
+    let currentNumber = 1;
+    let dialNumbers = document.getElementById("dialNumbers");
+    let currentNumDisplay = document.getElementById("currentNumber");
+    let lockBtn = document.getElementById("lockNumberBtn");
 
-    // visual feedback
-    currentNumDisplay.style.color = "orange";
+    let vaultInput = [];
 
-    // once they enter 4 numbers
-    if(vaultInput.length === 4){
+    // ===== BUILD NUMBER WHEEL =====
+    for(let i=1;i<=9;i++){
+        let num = document.createElement("div");
+        num.className = "number";
+        num.innerText = i;
 
-        currentNumDisplay.textContent = "…";
+        let deg = (i-1)*(360/9);
+        num.style.transform =
+            `rotate(${deg}deg) translateY(-100px) rotate(-${deg}deg)`;
 
-        setTimeout(() => {
-
-            alert("ACCESS DENIED");
-
-            // reset
-            vaultInput = [];
-            currentNumDisplay.textContent = currentNumber;
-            currentNumDisplay.style.color = "white";
-
-        }, 800);
+        dialNumbers.appendChild(num);
     }
-});
+
+    // ===== SPIN WHEEL =====
+    document.getElementById("dial").addEventListener("wheel", (e)=>{
+        e.preventDefault();
+
+        currentNumber += e.deltaY > 0 ? 1 : -1;
+
+        if(currentNumber > 9) currentNumber = 1;
+        if(currentNumber < 1) currentNumber = 9;
+
+        let angle = -(currentNumber - 1) * (360/9);
+
+        dialNumbers.style.transform = `rotate(${angle}deg)`;
+        currentNumDisplay.textContent = currentNumber;
+    });
+
+    // ===== FAKE VAULT INPUT (ALWAYS FAILS) =====
+    lockBtn.addEventListener("click", ()=>{
+
+        vaultInput.push(currentNumber);
+        currentNumDisplay.style.color = "orange";
+
+        // after 4 numbers entered
+        if(vaultInput.length === 4){
+
+            currentNumDisplay.textContent = "…";
+
+            setTimeout(() => {
+
+                const fakeMessages = [
+                    "ACCESS DENIED",
+                    "INVALID SEQUENCE",
+                    "LOCKED SYSTEM",
+                    "TRY AGAIN"
+                ];
+
+                alert(fakeMessages[Math.floor(Math.random() * fakeMessages.length)]);
+
+                // reset
+                vaultInput = [];
+                currentNumDisplay.textContent = currentNumber;
+                currentNumDisplay.style.color = "white";
+
+            }, 800);
+        }
+    });
+}
     
 // ===== ROOM SEQUENCE PUZZLE (hidden) =====
 function room7RoomClick(roomNum) {
