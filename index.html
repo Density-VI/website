@@ -936,52 +936,6 @@ function initVault(){
         }
     });
 }
-    // ===== SPIN WHEEL =====
-    document.getElementById("dial").addEventListener("wheel", (e)=>{
-        e.preventDefault();
-
-        currentNumber += e.deltaY > 0 ? 1 : -1;
-
-        if(currentNumber > 9) currentNumber = 1;
-        if(currentNumber < 1) currentNumber = 9;
-
-        let angle = -(currentNumber - 1) * (360/9);
-
-        dialNumbers.style.transform = `rotate(${angle}deg)`;
-        currentNumDisplay.textContent = currentNumber;
-    });
-
-    // ===== FAKE VAULT INPUT (ALWAYS FAILS) =====
-    lockBtn.addEventListener("click", ()=>{
-
-        vaultInput.push(currentNumber);
-        currentNumDisplay.style.color = "orange";
-
-        // after 4 numbers entered
-        if(vaultInput.length === 4){
-
-            currentNumDisplay.textContent = "…";
-
-            setTimeout(() => {
-
-                const fakeMessages = [
-                    "ACCESS DENIED",
-                    "INVALID SEQUENCE",
-                    "LOCKED SYSTEM",
-                    "TRY AGAIN"
-                ];
-
-                alert(fakeMessages[Math.floor(Math.random() * fakeMessages.length)]);
-
-                // reset
-                vaultInput = [];
-                currentNumDisplay.textContent = currentNumber;
-                currentNumDisplay.style.color = "white";
-
-            }, 800);
-        }
-    });
-}
     
 // ===== ROOM SEQUENCE PUZZLE (hidden) =====
 function room7RoomClick(roomNum) {
