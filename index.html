@@ -871,7 +871,16 @@ function initVault(){
 
     let vaultInput = [];
 
-    // ===== BUILD NUMBER WHEEL =====
+    // 👇 SHOW WHAT THEY CLICKED
+    let displayClicks = document.createElement("p");
+    displayClicks.style.color = "cyan";
+    displayClicks.style.marginTop = "10px";
+    displayClicks.innerText = "Sequence: ";
+    document.getElementById("vaultContainer").appendChild(displayClicks);
+
+    // ===== CREATE WHEEL NUMBERS =====
+    dialNumbers.innerHTML = ""; // safety reset
+
     for(let i=1;i<=9;i++){
         let num = document.createElement("div");
         num.className = "number";
@@ -884,6 +893,49 @@ function initVault(){
         dialNumbers.appendChild(num);
     }
 
+    // ===== SPIN WHEEL =====
+    document.getElementById("dial").addEventListener("wheel", (e)=>{
+        e.preventDefault();
+
+        currentNumber += e.deltaY > 0 ? 1 : -1;
+
+        if(currentNumber > 9) currentNumber = 1;
+        if(currentNumber < 1) currentNumber = 9;
+
+        let angle = -(currentNumber - 1) * (360/9);
+
+        dialNumbers.style.transform = `rotate(${angle}deg)`;
+        currentNumDisplay.textContent = currentNumber;
+    });
+
+    // ===== CLICK / LOCK NUMBER =====
+    lockBtn.addEventListener("click", ()=>{
+
+        vaultInput.push(currentNumber);
+
+        // update visible sequence
+        displayClicks.innerText = "Sequence: " + vaultInput.join(" - ");
+
+        currentNumDisplay.style.color = "orange";
+
+        // fake reset after 4 clicks
+        if(vaultInput.length === 4){
+
+            currentNumDisplay.textContent = "…";
+
+            setTimeout(() => {
+
+                alert("ACCESS DENIED");
+
+                vaultInput = [];
+                displayClicks.innerText = "Sequence: ";
+                currentNumDisplay.textContent = currentNumber;
+                currentNumDisplay.style.color = "white";
+
+            }, 700);
+        }
+    });
+}
     // ===== SPIN WHEEL =====
     document.getElementById("dial").addEventListener("wheel", (e)=>{
         e.preventDefault();
