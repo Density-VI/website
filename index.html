@@ -443,7 +443,7 @@ updateBalanceDisplay();
 <!-- LEADERBOARD PAGE -->
 <div id="leaderboardPage" class="room hidden">
     <h1>🏆 Your Best Times!</h1>
-    <h2>Reset leaderboard code=9/11isgood</h2>
+    <h2>Reset leaderboard code=takeaguess</h2>
     <table id="leaderboardTable">
         <tr>
             <th>Rank</th>
@@ -801,7 +801,7 @@ function showLeaderboard() {
 
 function resetLeaderboard() {
     let code = prompt("Enter reset code:");
-    if (code === "9/11isgood") {
+    if (code === "takeaguess") {
         localStorage.removeItem("escapeRoomLeaderboard");
         alert("Leaderboard has been reset.");
         showLeaderboard();
