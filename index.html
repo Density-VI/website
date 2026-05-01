@@ -363,7 +363,7 @@ updateBalanceDisplay();
 
     <div id="bossPhase2" class="hidden">
         <h2>its almost like you want a phone number or somthing</h2>
-        <p style="letter-spacing:5px;">SILENCE</p>
+        <p style="letter-spacing:5px;">QUIET</p>
         <input type="text" id="bossInput" placeholder="Enter code">
         <button onclick="checkBossCode()">Submit</button>
         <p id="bossFeedback"></p>
@@ -733,7 +733,7 @@ function unlockBossPhase2() {
 
 function checkBossCode() {
     const input = document.getElementById("bossInput").value;
-    if (input === "7453623") {
+    if (input === "LXXVMMMCDXXXVIII") {
         document.getElementById("bossPhase2").classList.add("hidden");
         document.getElementById("bossFinalChoice").classList.remove("hidden");
     } else {
